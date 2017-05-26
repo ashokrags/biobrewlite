@@ -1,0 +1,21 @@
+bioproject: Project_nm_1
+experiment: rnaseq_pilot
+sample_manifest:
+  fastq_file: /Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_manifest_min.csv
+  metadata:
+run_parms:
+  work_dir: /gpfs/scratch/aragaven/test_workflow
+  log_dir: logs
+  db: sqlite
+  db_loc: ':memory:'
+  saga_host: localhost
+workflow_sequence:
+  fastqc: default
+  gsnap:
+    -d: Ensembl_Mus_musculus_GRCm38
+    -s: Mus_musculus.GRCm38.88.splicesites.iit
+qc_checkpoints:
+  fastqc_qc: default
+  align_qc: default
+  counts_qc: default
+

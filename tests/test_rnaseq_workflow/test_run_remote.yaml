@@ -1,0 +1,23 @@
+bioproject: Project_nm_1
+experiment: rnaseq_pilot
+sample_manifest:
+  fastq_file: /Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_min_remote.csv
+  metadata:
+run_parms:
+  work_dir: /gpfs/scratch/aragaven/lapierre_test_workflow
+  log_dir: logs
+  paired_end: True
+  db: sqlite
+  db_loc: ':memory:'
+  saga_host: ssh.ccv.brown.edu
+  ssh_user: aragaven
+workflow_sequence:
+  fastqc: default
+  gsnap:
+    -d: c_elegans_Ws8
+    -s: caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.splicesites.iit
+qc_checkpoints:
+  fastqc_qc: default
+  align_qc: default
+  counts_qc: default
+
