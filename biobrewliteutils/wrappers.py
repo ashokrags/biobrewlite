@@ -91,7 +91,7 @@ class BaseWrapper:
 
         ## Below for testing only
         self.local_target =kwargs.get('local_target',True)
-        self.luigi_local_target = os.path.join(kwargs.get('luigi_loc',"/Users/aragaven/scratch/test_workflow"),
+        self.luigi_local_target = os.path.join(kwargs.get('luigi_local_path',"/Users/aragaven/scratch/test_workflow"),
                                                kwargs.get('target',"None"))
 
         self.stdout = kwargs.get('stdout')

@@ -7,6 +7,8 @@ run_parms:
   work_dir: /gpfs/scratch/aragaven/lapierre_test_workflow
   log_dir: logs
   paired_end: True
+  local_targets: True
+  luigi_local_path: /Users/aragaven/scratch/test_workflow
   db: sqlite
   db_loc: ':memory:'
   saga_host: ssh.ccv.brown.edu
