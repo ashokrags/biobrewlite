@@ -420,9 +420,9 @@ class BedtoolsCounts(BaseWrapper):
         kwargs['target'] = hashlib.sha224(input + '.counts.csv').hexdigest() + ".txt"
         name = name + " multicov "
         self.init(name, **kwargs)
-        self.args = ["-S ",
-                     "O=" + os.path.join(self.cwd, input + ".dup.srtd.bam"),
-                     "M=" + os.path.join(self.cwd, input + ".dup.metrics.txt")]
+        self.args = ["-split", "-D", "-f 0.95",
+                     "-a " + os.path.join(self.cwd, input + ".dup.srtd.bam"),
+                     "-b " + os.path.join(self.cwd, input + ".dup.metrics.txt")]
         self.args += args
         self.setup_run()
         return
