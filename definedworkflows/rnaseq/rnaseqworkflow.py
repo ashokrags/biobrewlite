@@ -420,9 +420,9 @@ class RnaSeqFlow(BaseWorkflow):
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
                     tmp_prog = self.prog_wrappers[key](key, samp, *self.progs[key],
-                                                       **dict(base_kwargs),
                                                        stdout=os.path.join(self.run_parms['work_dir'],
-                                                                           samp + '.sam')
+                                                                           samp + '.sam'),
+                                                       **dict(base_kwargs)
                                                        )
                     print tmp_prog.run_command
                     # print self.job_params
