@@ -340,7 +340,7 @@ class RnaSeqFlow(BaseWorkflow):
                                job_parms=self.job_params,
                                log_dir=self.run_parms['log_dir'],
                                paired_end=self.run_parms['paired_end'],
-                               local_target= self.run_parms['local_targets'],
+                               local_target=self.run_parms['local_targets'],
                                luigi_local_path=self.run_parms['luigi_local_path']
                                )
             for key in self.progs.keys():
@@ -351,9 +351,9 @@ class RnaSeqFlow(BaseWorkflow):
 
                     tmp_prog = self.prog_wrappers['samdup']('bammarkduplicates2', samp,
                                                             **dict(base_kwargs,
-                                                            stdout=os.path.join(self.run_parms['work_dir'],
-                                                                                self.run_parms['log_dir'],
-                                                                                samp + '_bamdup.log'))
+                                                                   stdout=os.path.join(self.run_parms['work_dir'],
+                                                                                       self.run_parms['log_dir'],
+                                                                                       samp + '_bamdup.log'))
                                                             )
                     print tmp_prog.run_command
                     # print self.job_params
@@ -487,7 +487,7 @@ class RnaSeqFlow(BaseWorkflow):
 
 
 if __name__ == '__main__':
-    parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote.yaml"
+    parmsfile = "/home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_tdat.yaml"
     rw1 = RnaSeqFlow(parmsfile)
 
     print "\n***** Printing config Parsing ******\n"
@@ -514,5 +514,7 @@ if __name__ == '__main__':
     # Actual jobs start here
     rw1.symlink_fastqs()
     rw1.chain_commands()
-    luigi.build([TaskFlow(tasks=rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
+    luigi.build([TaskFlow(tasks=rw1.allTasks, task_name=rw1.bioproject)], local_scheduler=False,
+                workers=len(rw1.sample_fastq_work.keys()), lock_size=1)
+    # luigi.build([TaskFlow(tasks=rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
     # luigi.build(self.rw1.allTasks, local_scheduler=False, workers=3, lock_size=3)
