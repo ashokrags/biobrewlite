@@ -38,6 +38,7 @@ class BaseTask:
         jd.working_directory = kwargs.get('work_dir', os.getcwd())
         jd.wall_time_limit = kwargs.get('time', 60)
         jd.total_physical_memory = kwargs.get('mem', 2000)
+        jd.total_cpu_count = kwargs.get('ncpus', 1)
         jd.output = kwargs.get('out', os.path.join(jd.working_directory, "mysagajob.stdout"))
         jd.error = kwargs.get('error', "mysagajob.stderr")
 
@@ -427,7 +428,8 @@ class RnaSeqFlow(BaseWorkflow):
                     print tmp_prog.run_command
                     # print self.job_params
                     tmp_prog.job_parms['mem'] = 60000
-                    tmp_prog.job_parms['time'] = 60 * 5
+                    tmp_prog.job_parms['time'] = 60 * 10
+                    tmp_prog.job_parms['ncpus'] = 6
                     # print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
@@ -444,6 +446,7 @@ class RnaSeqFlow(BaseWorkflow):
                     # print self.job_params
                     tmp_prog.job_parms['mem'] = 1000
                     tmp_prog.job_parms['time'] = 80
+                    tmp_prog.job_parms['ncpus'] = 1
                     # print tmp_prog.job_parms
 
             # Remove the first job and re-add it without any targets
