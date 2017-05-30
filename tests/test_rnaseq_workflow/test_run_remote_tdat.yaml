@@ -1,4 +1,4 @@
-  bioproject: Project_nm_1
+bioproject: Project_nm_1
 experiment: rnaseq_pilot
 sample_manifest:
   fastq_file: /home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_min_remote.csv
