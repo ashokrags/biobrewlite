@@ -428,7 +428,7 @@ class RnaSeqFlow(BaseWorkflow):
                     print tmp_prog.run_command
                     # print self.job_params
                     tmp_prog.job_parms['mem'] = 60000
-                    tmp_prog.job_parms['time'] = 60 * 10
+                    tmp_prog.job_parms['time'] = 60 * 20
                     tmp_prog.job_parms['ncpus'] = 6
                     # print tmp_prog.job_parms
 
