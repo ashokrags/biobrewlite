@@ -18,4 +18,3 @@ qc_checkpoints:
   fastqc_qc: default
   align_qc: default
   counts_qc: default
-

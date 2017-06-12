@@ -11,10 +11,11 @@ class BaseTask:
         self.parms = jsonpickle.decode(self.prog_parms[0])
         self.jobparms = self.parms.job_parms
         self.jobparms['workdir'] = self.parms.cwd
-        self.jobparms['command'] = 'echo $PATH\n source activate cbc_conda\n'
+        self.jobparms['command'] = 'echo $PATH\n source activate cbc_conda\nsrun '
         self.jobparms['command'] += self.parms.run_command
         prog_name = self.parms.name.replace(" ", "_")
         self.name = self.parms.input + ":" + prog_name
+        self.__name__ = self.name
         self.jobparms['out'] = os.path.join(self.parms.cwd, self.parms.log_dir,
                                             self.parms.input + "_" + prog_name + "_mysagajob.stdout")
         self.jobparms['error'] = os.path.join(self.parms.cwd, self.parms.log_dir,
