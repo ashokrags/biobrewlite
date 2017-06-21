@@ -12,8 +12,13 @@ run_parms:
 workflow_sequence:
   fastqc: default
   gsnap:
-    -d: Ensembl_Mus_musculus_GRCm38
-    -s: Mus_musculus.GRCm38.88.splicesites.iit
+    options:
+      -d: Ensembl_Mus_musculus_GRCm38
+      -s: Mus_musculus.GRCm38.88.splicesites.iit
+    job_params:
+      ncpus: 6
+      mem: 5g
+      time: 10:00:00
 qc_checkpoints:
   fastqc_qc: default
   align_qc: default

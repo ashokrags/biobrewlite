@@ -11,14 +11,20 @@ class BaseTask:
         self.parms = jsonpickle.decode(self.prog_parms[0])
         self.jobparms = self.parms.job_parms
         self.jobparms['workdir'] = self.parms.cwd
-        self.jobparms['command'] = 'echo $PATH\n source activate cbc_conda\nsrun '
+
+        ## Hack to get the command to work for now
+        self.jobparms['command'] = 'echo $PATH\n'
+        self.jobparms['command'] += self.parms.conda_path + "\n"
+
+        # self.jobparms['command'] +='source activate cbc_conda\n'
+        self.jobparms['command'] += 'srun '
         self.jobparms['command'] += self.parms.run_command
         prog_name = self.parms.name.replace(" ", "_")
         self.name = self.parms.input + ":" + prog_name
         self.__name__ = self.name
-        self.jobparms['out'] = os.path.join(self.parms.cwd, self.parms.log_dir,
+        self.jobparms['out'] = os.path.join(self.parms.cwd, self.parms.log_dir, 'slurm_logs',
                                             self.parms.input + "_" + prog_name + "_mysagajob.stdout")
-        self.jobparms['error'] = os.path.join(self.parms.cwd, self.parms.log_dir,
+        self.jobparms['error'] = os.path.join(self.parms.cwd, self.parms.log_dir, 'slurm_logs',
                                               self.parms.input + "_" + prog_name + "_mysagajob.stderr")
         self.jobparms['outfilesource'] = 'ssh.ccv.brown.edu:' + self.parms.luigi_target
         self.jobparms['outfiletarget'] = '' + os.path.dirname(self.parms.luigi_local_target) + "/"
@@ -37,9 +43,11 @@ class BaseTask:
         jd.executable = ''
         jd.arguments = [kwargs.get('command')]  # cmd
         jd.working_directory = kwargs.get('work_dir', os.getcwd())
-        jd.wall_time_limit = kwargs.get('time', 60)
-        jd.total_physical_memory = kwargs.get('mem', 2000)
-        jd.total_cpu_count = kwargs.get('ncpus', 1)
+        jd.wall_time_limit = kwargs.get('-t', 60)
+        jd.total_physical_memory = kwargs.get('-m', 2000)
+        jd.number_of_processes = 1
+        jd.processes_per_host = 1
+        jd.total_cpu_count = kwargs.get('-c', 1)
         jd.output = kwargs.get('out', os.path.join(jd.working_directory, "mysagajob.stdout"))
         jd.error = kwargs.get('error', "mysagajob.stderr")
 
@@ -122,7 +130,7 @@ class BaseWorkflow:
         self.prog_wrappers = {'feature_counts': wr.BedtoolsCounts,
                               'gsnap': wr.Gsnap,
                               'fastqc': wr.FastQC,
-                              'rnaseqc': wr.RnaSeqQc,
+                              'qualimap': wr.QualiMap,
                               'samtomapped': wr.SamToMappedBam,
                               'samtounmapped': wr.SamToUnmappedBam,
                               'samindex': wr.SamIndex,
@@ -162,6 +170,8 @@ class RnaSeqFlow(BaseWorkflow):
     sample_fastq_work = dict()
     progs = OrderedDict()
     allTasks = []
+    progs_job_parms = dict()
+
 
     def __init__(self, parmsfile):
         self.init(parmsfile)
@@ -194,11 +204,22 @@ class RnaSeqFlow(BaseWorkflow):
         """
         for k, v in self.workflow_sequence.iteritems():
             self.progs[k] = []
-            if v == 'default':
+            print k, v
+            if isinstance(v, dict):
+                # Add the specific program options
+                if 'options' in v.keys():
+                    for k1, v1 in v['options'].iteritems():
+                        self.progs[k].append("%s %s" % (k1, v1))
+                else:
+                    self.progs[k].append('')
+                # Add the specific program job parameters
+                if 'job_params' in v.keys():
+                    self.progs_job_parms[k] = v['job_params']
+                else:
+                    self.progs_job_parms[k] = 'default'
+            elif v == 'default':
                 self.progs[k].append(v)
-            else:
-                for k1, v1 in v.iteritems():
-                    self.progs[k].append("%s %s" % (k1, v1))
+
                     # self.progs[k].append(v1)
         self.progs = OrderedDict(reversed(self.progs.items()))
         return
@@ -339,6 +360,7 @@ class RnaSeqFlow(BaseWorkflow):
             print "\n *******Commands for Sample:%s ***** \n" % (samp)
             samp_progs = []
             base_kwargs = dict(cwd=self.run_parms['work_dir'],
+                               conda_path=self.run_parms['conda_path'],
                                job_parms=self.job_params,
                                log_dir=self.run_parms['log_dir'],
                                paired_end=self.run_parms['paired_end'],
@@ -428,9 +450,13 @@ class RnaSeqFlow(BaseWorkflow):
                                                        )
                     print tmp_prog.run_command
                     # print self.job_params
-                    tmp_prog.job_parms['mem'] = 60000
-                    tmp_prog.job_parms['time'] = 60 * 60
-                    tmp_prog.job_parms['ncpus'] = 6
+
+                    ## Update the job parameter for the program from default if needed
+
+                    if self.progs_job_parms[k] != 'default':
+                        tmp_prog.job_parms['-m'] = self.progs_job_parms[k]['-m']
+                        tmp_prog.job_parms['-t'] = self.progs_job_parms[k]['-t']
+                        tmp_prog.job_parms['-c'] = self.progs_job_parms[k]['-c']
                     # print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))

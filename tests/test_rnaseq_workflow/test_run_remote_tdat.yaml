@@ -4,6 +4,7 @@ sample_manifest:
   fastq_file: /home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_min_remote.csv
   metadata:
 run_parms:
+  conda_path: 'source activate cbc_conda_test'
   work_dir: /gpfs/scratch/aragaven/lapierre_test_workflow
   log_dir: logs
   paired_end: True
@@ -13,8 +14,11 @@ run_parms:
   db_loc: ':memory:'
   saga_host: ssh.ccv.brown.edu
   ssh_user: aragaven
+  gtf_file: /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf
+  genome_file: 
 workflow_sequence:
-  fastqc: default
+  fastqc:
+    default
   gsnap:
     -d: c_elegans_Ws8
     -s: caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.splicesites.iit
@@ -22,4 +26,3 @@ qc_checkpoints:
   fastqc_qc: default
   align_qc: default
   counts_qc: default
-

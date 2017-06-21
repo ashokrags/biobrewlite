@@ -13,6 +13,7 @@ class TestBaseWorkflow(TestCase):
 
         for k,v in self.rw1.__dict__.iteritems():
             print k,v
+
         return
 
     # def test_create_catalog(self):

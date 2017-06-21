@@ -82,6 +82,7 @@ class BaseWrapper:
         self.cmd = None
         self.run_command = None
         self.args = []
+        self.conda_path = kwargs.get('conda_path')
         self.job_parms = kwargs.get('job_parms')
         self.paired_end = kwargs.get('paired_end',False)
         self.cwd = kwargs.get('cwd', os.getcwd())
@@ -393,19 +394,28 @@ class BiobambamMarkDup(BaseWrapper):
         return
 
 
-class RnaSeqQc(BaseWrapper):
+class QualiMap(BaseWrapper):
     """
-    A wrapper for the GenePattern Module RnaSeqQc
+    A wrapper for the running qualimap
 
     """
 
     cmd = ''
     args = []
 
-    def __init__(self, input, *args):
-        self.cmd = ['rnaseqc']
+    def __init__(self, input, *args, **kwargs):
+        self.input = input
+        kwargs['target'] = hashlib.sha224(input + '.qualimapReport.html').hexdigest() + ".txt"
+        # "qualimap rnaseq " \
+        # "-bam /gpfs/scratch/aragaven/lapierre_test_workflow/samp_S14.dup.srtd.bam " \
+        # "-gtf /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf " \
+        # "-outdir /gpfs/scratch/aragaven/test_workflow/align_qc/S14"
+
+        self.args = [" -bam " + os.path.join(self.cwd, input + ".dup.srtd.bam"),
+                     " -gtf " + os.path.join(self.cwd, input + ".dup.srtd.bam"),
+                     " -outdir " + os.path.join(self.cwd, "align_qc", input)]
         self.args += args
-        self.cmd = ' '.join(chain(self.cmd, map(str, self.args), input))
+        self.setup_run()
         return
 
 
