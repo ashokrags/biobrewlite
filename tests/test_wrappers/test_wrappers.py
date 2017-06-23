@@ -14,6 +14,7 @@ class TestWrapper(unittest.TestCase):
                                         stdout=os.path.join(self.rw1.run_parms['work_dir'],'fastqc.log'))
 
     def test_wrapper(self):
+        print "\n***** Testing  the Base wrapper class *****\n"
         for k, v in self.test_wrap.__dict__.iteritems():
             print k + ": " + str(v) +  "\n"
         #print "**** Using inspect ***\n"
@@ -54,10 +55,13 @@ class TestGsnap(unittest.TestCase):
         self.rw1.parse_prog_info()
         self.wrapper_name = 'gsnap'
         self.add_args = self.rw1.progs[self.wrapper_name]
+        if self.rw1.progs_job_parms['gsnap'] != 'default' and 'ncpus' in self.rw1.progs_job_parms['gsnap'].keys():
+            self.rw1.progs[self.wrapper_name].append('-t ' + str(self.rw1.progs_job_parms['gsnap']['ncpus']))
+
         #use  *self.add_args to unroll the list
         self.gsnap_test = wr.Gsnap(self.wrapper_name, "test_samp", *self.add_args,
                                    cwd=self.rw1.run_parms['work_dir'],
-                                   stdout=os.path.join(self.rw1.run_parms['work_dir'], 'gsnap.log'))
+                                   stdout=os.path.join(self.rw1.align_dir, 'gsnap.log'))
 
 
     def test_gsnap_wrapper(self):
@@ -96,17 +100,16 @@ class TestQualimap(unittest.TestCase):
         self.rw1 = rsw(self.parmsfile)
         # self.rw1.parse_prog_info()
         self.wrapper_name = 'qualimap'
-        self.qualimap_test = wr.BiobambamMarkDup(self.wrapper_name, "test_samp",
-                                                 cwd=self.rw1.run_parms['work_dir'],
-                                                 stdout=os.path.join(self.rw1.run_parms['work_dir'],
-                                                                     'bammarkduplicates.log'))
+        self.qualimap_test = wr.QualiMapRnaSeq(self.wrapper_name, "test_samp",
+                                               stdout=os.path.join(self.rw1.log_dir, 'qualimap.log'),
+                                               **dict(self.rw1.base_kwargs))
 
-    def test_sammarkduo_wrapper(self):
-        print "\n***** Testing biobambam_wrapper command *****\n"
-        print self.biobambammarkdup_test.run_command
+    def test_qualimap_wrapper(self):
+        print "\n***** Testing Qualimap_wrapper command *****\n"
+        print self.qualimap_test.run_command
 
-        # print "\n***** Testing biobambam_wrapper *****\n"
-        # for k, v in self.biobambammarkdup_test.__dict__.iteritems():
+        # print "\n***** Testing Qualimap_wrapper *****\n"
+        # for k, v in self.qualimap_test.__dict__.iteritems():
         #     print k + ": " + str(v) +  "\n"
 
 

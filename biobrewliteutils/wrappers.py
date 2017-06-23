@@ -82,7 +82,7 @@ class BaseWrapper:
         self.cmd = None
         self.run_command = None
         self.args = []
-        self.conda_path = kwargs.get('conda_path')
+        self.conda_path = kwargs.get('conda_command')
         self.job_parms = kwargs.get('job_parms')
         self.paired_end = kwargs.get('paired_end',False)
         self.cwd = kwargs.get('cwd', os.getcwd())
@@ -211,7 +211,7 @@ class BaseWrapper:
         cmd += self.cmd
         self.version(cmd=cmd, path=self.cmd[0])
 
-    def setup_run(self):
+    def setup_run(self, add_command=None):
         """
         Call this function at the end of your class's `__init__` function.
         """
@@ -239,7 +239,11 @@ class BaseWrapper:
             self.args.append('1>>' + stderr)
 
         cmd = ' '.join(chain(cmd, map(str, self.args)))
+        if add_command is not None:
+            cmd += "; " + add_command
+
         self.run_command = cmd + "; echo 'DONE' > " + self.luigi_target
+        return
 
     def run_jar(self, mem=None):
         """
@@ -394,28 +398,31 @@ class BiobambamMarkDup(BaseWrapper):
         return
 
 
-class QualiMap(BaseWrapper):
+class QualiMapRnaSeq(BaseWrapper):
     """
-    A wrapper for the running qualimap
+    A wrapper for the running qualimap for RNAseq
 
     """
 
     cmd = ''
     args = []
 
-    def __init__(self, input, *args, **kwargs):
+    def __init__(self, name, input, *args, **kwargs):
         self.input = input
         kwargs['target'] = hashlib.sha224(input + '.qualimapReport.html').hexdigest() + ".txt"
-        # "qualimap rnaseq " \
+        self.init(name, **kwargs)
+        name = name + " rnaseq"
         # "-bam /gpfs/scratch/aragaven/lapierre_test_workflow/samp_S14.dup.srtd.bam " \
         # "-gtf /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf " \
         # "-outdir /gpfs/scratch/aragaven/test_workflow/align_qc/S14"
-
-        self.args = [" -bam " + os.path.join(self.cwd, input + ".dup.srtd.bam"),
-                     " -gtf " + os.path.join(self.cwd, input + ".dup.srtd.bam"),
-                     " -outdir " + os.path.join(self.cwd, "align_qc", input)]
+        gtf = kwargs.get('gtf_file')
+        self.args = [" -bam " + os.path.join(kwargs.get('cwd'), input + ".dup.srtd.bam"),
+                     " -gtf " + gtf,
+                     " -outdir " + os.path.join(kwargs.get('cwd'), "align_qc", input)]
         self.args += args
-        self.setup_run()
+        rename_results = ' '.join([" cp ", os.path.join(kwargs.get('cwd'), "align_qc", input, "qualimapReport.html "),
+                                   os.path.join(kwargs.get('cwd'), "align_qc", input, input + "_qualimapReport.html ")])
+        self.setup_run(add_command=rename_results)
         return
 
 

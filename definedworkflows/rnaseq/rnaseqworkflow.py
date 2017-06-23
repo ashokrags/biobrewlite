@@ -21,7 +21,7 @@ class BaseTask:
         self.jobparms['command'] += self.parms.run_command
         prog_name = self.parms.name.replace(" ", "_")
         self.name = self.parms.input + ":" + prog_name
-        self.__name__ = self.name
+        self.__class__.__name__ = self.name
         self.jobparms['out'] = os.path.join(self.parms.cwd, self.parms.log_dir, 'slurm_logs',
                                             self.parms.input + "_" + prog_name + "_mysagajob.stdout")
         self.jobparms['error'] = os.path.join(self.parms.cwd, self.parms.log_dir, 'slurm_logs',
@@ -79,9 +79,7 @@ class TopTask(luigi.Task, BaseTask):
 
     def output(self):
         self.setup()
-        # lcs.RemoteFileSystem("ssh.ccv.brown.edu").get(self.parms.luigi_target,self.parms.luigi_local_target)
         return luigi.LocalTarget(self.parms.luigi_local_target)
-        # return lcs.RemoteFileSystem("ssh.ccv.brown.edu", self.parms.luigi_target)
 
 
 class TaskSequence(luigi.Task, BaseTask):
@@ -130,7 +128,7 @@ class BaseWorkflow:
         self.prog_wrappers = {'feature_counts': wr.BedtoolsCounts,
                               'gsnap': wr.Gsnap,
                               'fastqc': wr.FastQC,
-                              'qualimap': wr.QualiMap,
+                              'qualimap': wr.QualiMapRnaSeq,
                               'samtomapped': wr.SamToMappedBam,
                               'samtounmapped': wr.SamToUnmappedBam,
                               'samindex': wr.SamIndex,
@@ -178,6 +176,8 @@ class RnaSeqFlow(BaseWorkflow):
         self.init(parmsfile)
         self.paired_end = False
         self.parse_sample_info()
+        self.set_base_kwargs()
+        self.setup_paths()
         self.create_catalog()
         return
 
@@ -267,16 +267,17 @@ class RnaSeqFlow(BaseWorkflow):
 
     def setup_paths(self):
         self.work_dir = self.run_parms['work_dir']
-        remote_dirs_flag = False
         self.log_dir = os.path.join(self.work_dir, self.run_parms['log_dir'])
         self.checkpoint_dir = os.path.join(self.work_dir, 'checkpoints')
         self.fastq_dir = os.path.join(self.work_dir, 'fastq')
         self.align_dir = os.path.join(self.work_dir, 'alignments')
         self.expression_dir = os.path.join(self.work_dir, 'expression')
+        return
 
+    def test_paths(self):
         paths_to_test = [self.work_dir, self.log_dir, self.checkpoint_dir,
                          self.fastq_dir, self.align_dir, self.expression_dir]
-
+        remote_dirs_flag = False
         if self.run_parms['saga_host'] != "localhost":
             remote_dirs_flag = True
             remote_prefix = "sftp://" + self.run_parms['saga_host']
@@ -284,6 +285,7 @@ class RnaSeqFlow(BaseWorkflow):
 
         for p in paths_to_test:
             self.check_paths(p, remote_dirs_flag)
+
         return
 
     def symlink_fastqs(self):
@@ -335,8 +337,8 @@ class RnaSeqFlow(BaseWorkflow):
         jd.working_directory = self.run_parms['work_dir']
         # jd.output = os.path.join(log_dir, "symlink.stdout")
         # jd.error = os.path.join(log_dir, "symlink.stderr")
-        job_output = os.path.join(log_dir, "symlink.stdout")
-        job_error = os.path.join(log_dir, "symlink.stderr")
+        job_output = os.path.join(self.log_dir, "symlink.stdout")
+        job_error = os.path.join(self.log_dir, "symlink.stderr")
 
 
 
@@ -468,11 +470,19 @@ class RnaSeqFlow(BaseWorkflow):
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
-                    tmp_prog = self.prog_wrappers[key](key, samp, *self.progs[key],
+                    prog_args = [x for x in self.progs[key]]
+                    print prog_args
+
+                    if self.progs_job_parms[key] != 'default' and 'ncpus' in self.progs_job_parms[key].keys():
+                        prog_args.append("-t " + str(self.progs_job_parms[key]['ncpus']))
+                    else:
+                        prog_args.append('-t 8')
+
+                    print prog_args
+                    tmp_prog = self.prog_wrappers[key](key, samp, *prog_args,
                                                        stdout=os.path.join(self.run_parms['work_dir'],
                                                                            samp + '.sam'),
-                                                       **dict(self.base_kwargs)
-                                                       )
+                                                       **dict(self.base_kwargs))
                     print tmp_prog.run_command
                     # print self.job_params
 
