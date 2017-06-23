@@ -55,8 +55,9 @@ class TestGsnap(unittest.TestCase):
         self.wrapper_name = 'gsnap'
         self.add_args = self.rw1.progs[self.wrapper_name]
         #use  *self.add_args to unroll the list
-        self.gsnap_test=wr.Gsnap(self.wrapper_name,"test_samp", *self.add_args, cwd=self.rw1.run_parms['work_dir'],
-                                        stdout=os.path.join(self.rw1.run_parms['work_dir'],'gsnap.log'))
+        self.gsnap_test = wr.Gsnap(self.wrapper_name, "test_samp", *self.add_args,
+                                   cwd=self.rw1.run_parms['work_dir'],
+                                   stdout=os.path.join(self.rw1.run_parms['work_dir'], 'gsnap.log'))
 
 
     def test_gsnap_wrapper(self):
@@ -76,7 +77,8 @@ class TestSamMarkDup(unittest.TestCase):
         self.wrapper_name = 'bammarkduplicates2'
         self.biobambammarkdup_test=wr.BiobambamMarkDup(self.wrapper_name,"test_samp",
                                                        cwd=self.rw1.run_parms['work_dir'],
-                                                        stdout=os.path.join(self.rw1.run_parms['work_dir'],'bammarkduplicates.log'))
+                                                       stdout=os.path.join(self.rw1.run_parms['work_dir'],
+                                                                           'bammarkduplicates.log'))
 
 
     def test_sammarkduo_wrapper(self):
@@ -86,6 +88,27 @@ class TestSamMarkDup(unittest.TestCase):
         # print "\n***** Testing biobambam_wrapper *****\n"
         # for k, v in self.biobambammarkdup_test.__dict__.iteritems():
         #     print k + ": " + str(v) +  "\n"
+
+
+class TestQualimap(unittest.TestCase):
+    def setUp(self):
+        self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run.yaml"
+        self.rw1 = rsw(self.parmsfile)
+        # self.rw1.parse_prog_info()
+        self.wrapper_name = 'qualimap'
+        self.qualimap_test = wr.BiobambamMarkDup(self.wrapper_name, "test_samp",
+                                                 cwd=self.rw1.run_parms['work_dir'],
+                                                 stdout=os.path.join(self.rw1.run_parms['work_dir'],
+                                                                     'bammarkduplicates.log'))
+
+    def test_sammarkduo_wrapper(self):
+        print "\n***** Testing biobambam_wrapper command *****\n"
+        print self.biobambammarkdup_test.run_command
+
+        # print "\n***** Testing biobambam_wrapper *****\n"
+        # for k, v in self.biobambammarkdup_test.__dict__.iteritems():
+        #     print k + ": " + str(v) +  "\n"
+
 
 if __name__ == '__main__':
     unittest.main()

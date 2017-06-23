@@ -171,6 +171,7 @@ class RnaSeqFlow(BaseWorkflow):
     progs = OrderedDict()
     allTasks = []
     progs_job_parms = dict()
+    base_kwargs = dict()
 
 
     def __init__(self, parmsfile):
@@ -264,6 +265,27 @@ class RnaSeqFlow(BaseWorkflow):
                 os.mkdir(path)
         return
 
+    def setup_paths(self):
+        self.work_dir = self.run_parms['work_dir']
+        remote_dirs_flag = False
+        self.log_dir = os.path.join(self.work_dir, self.run_parms['log_dir'])
+        self.checkpoint_dir = os.path.join(self.work_dir, 'checkpoints')
+        self.fastq_dir = os.path.join(self.work_dir, 'fastq')
+        self.align_dir = os.path.join(self.work_dir, 'alignments')
+        self.expression_dir = os.path.join(self.work_dir, 'expression')
+
+        paths_to_test = [self.work_dir, self.log_dir, self.checkpoint_dir,
+                         self.fastq_dir, self.align_dir, self.expression_dir]
+
+        if self.run_parms['saga_host'] != "localhost":
+            remote_dirs_flag = True
+            remote_prefix = "sftp://" + self.run_parms['saga_host']
+            [x.replace(os.path.join(remote_prefix, x)) for x in paths_to_test]
+
+        for p in paths_to_test:
+            self.check_paths(p, remote_dirs_flag)
+        return
+
     def symlink_fastqs(self):
         """
         Create soft links to original fastqs by renaming, local or remote, using the given sample IDs and the saga module
@@ -311,16 +333,12 @@ class RnaSeqFlow(BaseWorkflow):
         jd = saga.job.Description()
         jd.executable = ''
         jd.working_directory = self.run_parms['work_dir']
-        log_dir = os.path.join(self.run_parms['work_dir'], self.run_parms['log_dir'])
         # jd.output = os.path.join(log_dir, "symlink.stdout")
         # jd.error = os.path.join(log_dir, "symlink.stderr")
         job_output = os.path.join(log_dir, "symlink.stdout")
         job_error = os.path.join(log_dir, "symlink.stderr")
 
-        # Check paths
 
-        self.check_paths(remote_path, remote=remote_dirs)
-        self.check_paths(os.path.join(remote_path, self.run_parms['log_dir']), remote_dirs)
 
         # Setup the saga host to use
 
@@ -351,22 +369,28 @@ class RnaSeqFlow(BaseWorkflow):
         js.close()
         return
 
+    def set_base_kwargs(self):
+        self.base_kwargs['cwd'] = self.run_parms['work_dir']
+        self.base_kwargs['conda_command'] = self.run_parms.get('conda_command', 'source activate cbc_conda_test')
+        self.base_kwargs['job_parms'] = self.job_params
+        self.base_kwargs['log_dir'] = self.run_parms.get('log_dir', 'logs')
+        self.base_kwargs['paired_end'] = self.run_parms.get('paired_end', 'False')
+        self.base_kwargs['local_targets'] = self.run_parms.get('local_targets', False)
+        self.base_kwargs['luigi_local_path'] = self.run_parms.get('luigi_local_path', os.getcwd())
+        self.base_kwargs['gtf_file'] = self.run_parms.get('gtf_file', None)
+        self.base_kwargs['genome_file'] = self.run_parms.get('genome_file', None)
+        return
+
     def chain_commands(self):
         """
         Create a n ordered list of commands to be run sequentially for each sample for use with the Luigi scheduler.
         :return: 
         """
+
         for samp, file in self.sample_fastq_work.iteritems():
             print "\n *******Commands for Sample:%s ***** \n" % (samp)
             samp_progs = []
-            base_kwargs = dict(cwd=self.run_parms['work_dir'],
-                               conda_path=self.run_parms['conda_path'],
-                               job_parms=self.job_params,
-                               log_dir=self.run_parms['log_dir'],
-                               paired_end=self.run_parms['paired_end'],
-                               local_target=self.run_parms['local_targets'],
-                               luigi_local_path=self.run_parms['luigi_local_path']
-                               )
+
             for key in self.progs.keys():
 
                 if key == 'gsnap':
@@ -377,13 +401,14 @@ class RnaSeqFlow(BaseWorkflow):
                                                             stdout=os.path.join(self.run_parms['work_dir'],
                                                                                 self.run_parms['log_dir'],
                                                                                 samp + '_bamdup.log'),
-                                                            **dict(base_kwargs)
+                                                            **dict(self.base_kwargs)
                                                             )
                     print tmp_prog.run_command
-                    # print self.job_params
+                    print self.job_params
+                    print tmp_prog.job_parms
+
                     tmp_prog.job_parms['mem'] = 10000
                     tmp_prog.job_parms['time'] = 60
-                    # print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
@@ -391,7 +416,7 @@ class RnaSeqFlow(BaseWorkflow):
                                                               stdout=os.path.join(self.run_parms['work_dir'],
                                                                                   self.run_parms['log_dir'],
                                                                                   samp + '_bamidx.log'),
-                                                              **dict(base_kwargs)
+                                                              **dict(self.base_kwargs)
                                                               )
                     print tmp_prog.run_command
                     # print self.job_params
@@ -405,7 +430,7 @@ class RnaSeqFlow(BaseWorkflow):
                                                              stdout=os.path.join(self.run_parms['work_dir'],
                                                                                  self.run_parms['log_dir'],
                                                                                  samp + '_bamsrt.log'),
-                                                             **dict(base_kwargs)
+                                                             **dict(self.base_kwargs)
                                                              )
                     print tmp_prog.run_command
                     # print self.job_params
@@ -419,7 +444,7 @@ class RnaSeqFlow(BaseWorkflow):
                                                                  stdout=os.path.join(self.run_parms['work_dir'],
                                                                                      self.run_parms['log_dir'],
                                                                                      samp + '_samtobam.log'),
-                                                                 **dict(base_kwargs)
+                                                                 **dict(self.base_kwargs)
                                                                  )
                     print tmp_prog.run_command
                     # print self.job_params
@@ -433,7 +458,7 @@ class RnaSeqFlow(BaseWorkflow):
                                                                    stdout=os.path.join(self.run_parms['work_dir'],
                                                                                        self.run_parms['log_dir'],
                                                                                        samp + '_samtounmappedbam.log'),
-                                                                   **dict(base_kwargs)
+                                                                   **dict(self.base_kwargs)
                                                                    )
                     print tmp_prog.run_command
                     # print self.job_params
@@ -446,18 +471,19 @@ class RnaSeqFlow(BaseWorkflow):
                     tmp_prog = self.prog_wrappers[key](key, samp, *self.progs[key],
                                                        stdout=os.path.join(self.run_parms['work_dir'],
                                                                            samp + '.sam'),
-                                                       **dict(base_kwargs)
+                                                       **dict(self.base_kwargs)
                                                        )
                     print tmp_prog.run_command
                     # print self.job_params
 
                     ## Update the job parameter for the program from default if needed
-
-                    if self.progs_job_parms[k] != 'default':
-                        tmp_prog.job_parms['-m'] = self.progs_job_parms[k]['-m']
-                        tmp_prog.job_parms['-t'] = self.progs_job_parms[k]['-t']
-                        tmp_prog.job_parms['-c'] = self.progs_job_parms[k]['-c']
-                    # print tmp_prog.job_parms
+                    ##print self.progs_job_parms[key]
+                    if self.progs_job_parms[key] != 'default':
+                        tmp_prog.job_parms.update(self.progs_job_parms[key])
+                        # tmp_prog.job_parms['-m'] = self.progs_job_parms[key]['-m']
+                        # tmp_prog.job_parms['-t'] = self.progs_job_parms[key]['-t']
+                        # tmp_prog.job_parms['-c'] = self.progs_job_parms[key]['-c']
+                    print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
@@ -466,7 +492,7 @@ class RnaSeqFlow(BaseWorkflow):
                                                        stdout=os.path.join(self.run_parms['work_dir'],
                                                                            self.run_parms['log_dir'],
                                                                            samp + '_' + key + '.log'),
-                                                       **dict(base_kwargs)
+                                                       **dict(self.base_kwargs)
                                                        )
                     samp_progs.append(jsonpickle.encode(tmp_prog))
                     print tmp_prog.run_command
@@ -483,7 +509,7 @@ class RnaSeqFlow(BaseWorkflow):
                                                stdout=os.path.join(self.run_parms['work_dir'],
                                                                    self.run_parms['log_dir'],
                                                                    samp + '_' + key + '.log'),
-                                               **dict(base_kwargs)
+                                               **dict(self.base_kwargs)
                                                )
             samp_progs.append(jsonpickle.encode(tmp_prog))
             print tmp_prog.run_command

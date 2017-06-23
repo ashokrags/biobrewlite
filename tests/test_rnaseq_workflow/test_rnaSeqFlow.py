@@ -37,20 +37,22 @@ class TestRnaSeqFlow(TestCase):
             print k, v
         for k, v in self.rw1.progs_job_parms.iteritems():
             print k, v
+
     # def test_symlink_fastqs(self):
     #     #self.rw1.sample_fastq = {'sampN2': ['/gpfs/scratch/aragaven/test_workflow/N1-BC1_AACCAG_R1.fastq.gz'],
     #      #                        'sampN3': ['/gpfs/scratch/aragaven/test_workflow/N3-BC3_AGTGAG_R1.fastq.gz']}
     #     self.rw1.parse_sample_info()
     #     self.rw1.symlink_fastqs()
 
-    # def test_chain_commands_se(self):
-    #     self.rw1.sample_fastq_work = {'sampN2': '/gpfs/scratch/aragaven/test_workflow/sampN2.fq.gz',
-    #                                   'sampN3': '/gpfs/scratch/aragaven/test_workflow/sampN3.fq.gz'}
-    #     # self.rw1.symlink_fastqs()
-    #     self.rw1.parse_prog_info()
-    #     print self.rw1.progs
-    #     print "\n***** Printing Chained Commands ******\n"
-    #     self.rw1.chain_commands()
+    def test_chain_commands_se(self):
+        self.rw1.sample_fastq_work = {'sampN2': '/gpfs/scratch/aragaven/test_workflow/sampN2.fq.gz',
+                                      'sampN3': '/gpfs/scratch/aragaven/test_workflow/sampN3.fq.gz'}
+        # self.rw1.symlink_fastqs()
+        self.rw1.parse_prog_info()
+        print self.rw1.progs
+        print "\n***** Printing Chained Commands ******\n"
+        self.rw1.set_base_kwargs()
+        self.rw1.chain_commands()
 
             # def test_chain_commands_pe(self):
             #     # self.rw1.sample_fastq = {

@@ -4,7 +4,6 @@ sample_manifest:
   fastq_file: /home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_min_remote.csv
   metadata:
 run_parms:
-  conda_path: 'source activate cbc_conda_test'
   work_dir: /gpfs/scratch/aragaven/lapierre_test_workflow
   log_dir: logs
   paired_end: True
