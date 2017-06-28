@@ -528,29 +528,30 @@ class RnaSeqFlow(BaseWorkflow):
 if __name__ == '__main__':
     parmsfile = "/home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_tdat.yaml"
     rw1 = RnaSeqFlow(parmsfile)
-
-    print "\n***** Printing config Parsing ******\n"
-    for k, v in rw1.__dict__.iteritems():
-        print k, v
-        #
-
-    print "\n***** Printing Sample Info ******\n"
-    for k, v in rw1.sample_fastq.iteritems():
-        print k, v
-
+    #
+    # print "\n***** Printing config Parsing ******\n"
+    # for k, v in rw1.__dict__.iteritems():
+    #     print k, v
+    #     #
+    #
+    # print "\n***** Printing Sample Info ******\n"
+    # for k, v in rw1.sample_fastq.iteritems():
+    #     print k, v
+    #
     rw1.parse_prog_info()
-    print "\n***** Printing Progs dict ******\n"
-    for k, v in rw1.progs.iteritems():
-        print k, v
-
-    rev_progs = OrderedDict(reversed(rw1.progs.items()))
-    print "\n***** Printing Progs dict in reverse ******\n"
-    for k, v in rev_progs.iteritems():
-        print k, v
+    # print "\n***** Printing Progs dict ******\n"
+    # for k, v in rw1.progs.iteritems():
+    #     print k, v
+    #
+    # rev_progs = OrderedDict(reversed(rw1.progs.items()))
+    # print "\n***** Printing Progs dict in reverse ******\n"
+    # for k, v in rev_progs.iteritems():
+    #     print k, v
 
     print "\n***** Printing Chained Commands ******\n"
 
     # Actual jobs start here
+    rw1.test_paths()
     rw1.symlink_fastqs()
     rw1.chain_commands()
     luigi.build([TaskFlow(tasks=rw1.allTasks, task_name=rw1.bioproject)], local_scheduler=False,
