@@ -340,7 +340,7 @@ class Gsnap(BaseWrapper):
         return
 
     def setup_args(self):
-        self.args += ["--gunzip", "-A sam", "-N1", "--use-shared-memory=0", "-B 5"]
+        self.args += ["--gunzip", "-A sam", "-N1", "--use-shared-memory=0"]
         return
 
 

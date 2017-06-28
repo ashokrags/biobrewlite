@@ -1,20 +1,18 @@
-bioproject: Project_ll_1
+bioproject: Project_nm_1
 experiment: rnaseq_pilot
 sample_manifest:
-  fastq_file: /home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_min_remote.csv
+  fastq_file: /Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_min_remote.csv
   metadata:
 run_parms:
-  work_dir: /gpfs/scratch/aragaven/lapierre_test_workflow
-  conda_command: source activate cbc_conda_test
+  work_dir: /gpfs/scratch/aragaven/lapierre_test_pe_workflow
   log_dir: logs
   paired_end: True
   local_targets: True
-  luigi_local_path: /home/aragaven/scratch/test_workflow
+  luigi_local_path: /home/aragaven/scratch/test_pe_workflow
   db: sqlite
-  db_loc: ':memory:'
+  db_loc: default
   saga_host: ssh.ccv.brown.edu
   ssh_user: aragaven
-  saga_scheduler: slurm+ssh
   gtf_file: /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf
 workflow_sequence:
   fastqc: default
@@ -22,9 +20,9 @@ workflow_sequence:
     options:
       -d: c_elegans_Ws8
       -s: caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.splicesites.iit
-    job_parms:
+    job_params:
+      mem: 30000
       ncpus: 16
-      mem: 20000
       time: 600
   qualimap_rnaseq: default
 qc_checkpoints:
