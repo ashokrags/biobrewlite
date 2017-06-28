@@ -47,7 +47,8 @@ class TestFastqc(unittest.TestCase):
     def test_fastqc_wrapper(self):
         print "\n***** Testing Fastqc_wrapper command *****\n"
         print self.fastqc_test.run_command
-
+        out_command = "fastqc  -o /gpfs/scratch/aragaven/test_workflow/qc /gpfs/scratch/aragaven/test_workflow/fastq/test_samp_1.fq.gz 2>>/gpfs/scratch/aragaven/test_workflow/logs/test_samp_fastqc_err.log 1>/gpfs/scratch/aragaven/test_workflow/fastqc.log; fastqc /gpfs/scratch/aragaven/test_workflow/fastq/test_samp_2.fq.gz 2>>/gpfs/scratch/aragaven/test_workflow/logs/test_samp_fastqc_err.log 1>/gpfs/scratch/aragaven/test_workflow/fastqc.log"
+        self.assertEqual(self.fastqc_test.run_command, out_command)
         # print "\n***** Testing Fastqc_wrapper *****\n"
         # for k, v in self.fastqc_test.__dict__.iteritems():
         #     print k + ": " + str(v) +  "\n"
@@ -71,7 +72,8 @@ class TestGsnap(unittest.TestCase):
     def test_gsnap_wrapper(self):
         print "\n***** Testing Gsnap_wrapper command *****\n"
         print self.gsnap_test.run_command
-        #
+        out_command = "gsnap  -t 8 --gunzip -A sam -N1 --use-shared-memory=0 -B 5 -d Ensembl_Mus_musculus_GRCm38 -s Mus_musculus.GRCm38.88.splicesites.iit /gpfs/scratch/aragaven/test_workflow/fastq/test_samp_1.fq.gz /gpfs/scratch/aragaven/test_workflow/fastq/test_samp_2.fq.gz 2>>/gpfs/scratch/aragaven/test_workflow/logs/test_samp_gsnap_err.log 1>/gpfs/scratch/aragaven/test_workflow/alignments/gsnap.sam"
+        self.assertEqual(self.gsnap_test.run_command, out_command)
         # print "\n***** Testing Gsnap_wrapper *****\n"
         # for k, v in self.gsnap_test.__dict__.iteritems():
         #     print k + ": " + str(v) +  "\n"
@@ -92,7 +94,8 @@ class TestSamMarkDup(unittest.TestCase):
     def test_sammarkduo_wrapper(self):
         print "\n***** Testing biobambam_wrapper command *****\n"
         print self.biobambammarkdup_test.run_command
-
+        out_command = "bammarkduplicates2 index=0 I=/gpfs/scratch/aragaven/test_workflow/alignments/test_samp.srtd.bam O=/gpfs/scratch/aragaven/test_workflow/alignments/test_samp.dup.srtd.bam M=/gpfs/scratch/aragaven/test_workflow/qc/test_samp.dup.metrics.txt 2>>/gpfs/scratch/aragaven/test_workflow/logs/test_samp_bammarkduplicates2_err.log 1>/gpfs/scratch/aragaven/test_workflow/logs/bammarkduplicates.log"
+        self.assertEqual(self.biobambammarkdup_test.run_command, out_command)
         # print "\n***** Testing biobambam_wrapper *****\n"
         # for k, v in self.biobambammarkdup_test.__dict__.iteritems():
         #     print k + ": " + str(v) +  "\n"
@@ -111,6 +114,8 @@ class TestQualimap(unittest.TestCase):
     def test_qualimap_wrapper(self):
         print "\n***** Testing Qualimap_wrapper command *****\n"
         print self.qualimap_test.run_command
+        out_command = "qualimap rnaseq  --java-mem-size=10000M  -bam /gpfs/scratch/aragaven/test_workflow/alignments/test_samp.dup.srtd.bam  -gtf /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf  -outdir /gpfs/scratch/aragaven/test_workflow/qc/test_samp 2>>/gpfs/scratch/aragaven/test_workflow/logs/test_samp_qualimap_rnaseq_err.log 1>/gpfs/scratch/aragaven/test_workflow/logs/qualimap.log;  cp  /gpfs/scratch/aragaven/test_workflow/qc/test_samp/qualimapReport.html  /gpfs/scratch/aragaven/test_workflow/qc/test_samp/test_samp_qualimapReport.html "
+        self.assertEqual(self.qualimap_test.run_command, out_command)
 
         # print "\n***** Testing Qualimap_wrapper *****\n"
         # for k, v in self.qualimap_test.__dict__.iteritems():
