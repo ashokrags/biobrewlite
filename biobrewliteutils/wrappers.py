@@ -82,13 +82,17 @@ class BaseWrapper:
         self.cmd = None
         self.run_command = None
         self.args = []
-        self.conda_path = kwargs.get('conda_command')
+        self.conda_command = kwargs.get('conda_command')
         self.job_parms = kwargs.get('job_parms')
         self.paired_end = kwargs.get('paired_end',False)
         self.cwd = kwargs.get('cwd', os.getcwd())
-        self.log_dir = kwargs.get('log_dir', "logs")
-        self.luigi_source = os.path.join(self.cwd, kwargs.get('source', "None"))
-        self.luigi_target = os.path.join(self.cwd, kwargs.get('target', "None"))
+        self.log_dir = kwargs.get('log_dir', os.path.join(os.getcwd(), "logs"))
+        self.align_dir = kwargs.get('align_dir', os.path.join(os.getcwd(), 'align_dir'))
+        self.qc_dir = kwargs.get('qc_dir', os.path.join(os.getcwd(), 'qc_dir'))
+        ## Define the checkpoint files
+        ##self.luigi_source = os.path.join(self.cwd, 'checkpoints', kwargs.get('source', "None"))
+        self.luigi_source = "Present"
+        self.luigi_target = os.path.join(self.cwd, 'checkpoints', kwargs.get('target', "None"))
 
         ## Below for testing only
         self.local_target =kwargs.get('local_target',True)
@@ -216,9 +220,9 @@ class BaseWrapper:
         Call this function at the end of your class's `__init__` function.
         """
         cmd = self.cmd
-        stderr = os.path.join(self.cwd,self.log_dir,self.name + '_err.log')
+        stderr = os.path.join(self.log_dir, '_'.join([self.input, self.name, 'err.log']))
         if len(self.name.split()) > 1:
-            stderr = os.path.join(self.cwd, self.log_dir,'_'.join(self.name.split()) + '_err.log')
+            stderr = os.path.join(self.log_dir, '_'.join([self.input, '_'.join(self.name.split()), 'err.log']))
         self.args.append('2>>' + stderr)
 
         # if self.pipe:
@@ -242,7 +246,7 @@ class BaseWrapper:
         if add_command is not None:
             cmd += "; " + add_command
 
-        self.run_command = cmd + "; echo 'DONE' > " + self.luigi_target
+        self.run_command = cmd
         return
 
     def run_jar(self, mem=None):
@@ -276,21 +280,28 @@ class FastQC(BaseWrapper):
         # self.luigi_source = "None"
         self.version('-v')
         self.add_threading('-t')
+        self.args += [' -o ' + self.qc_dir]
         self.args += args
         if self.paired_end:
 
-            self.args.append(os.path.join(self.cwd,input + "_1.fq.gz"))
+            self.args.append(os.path.join(self.cwd, 'fastq', input + "_1.fq.gz"))
             self.setup_run()
             run_cmd1 = self.run_command
             self.init(name, **kwargs)
+            if kwargs.get('job_parms_type') != 'default':
+                self.job_parms.update(kwargs.get('add_job_parms'))
+            else:
+                self.job_parms.update({'mem': 1000, 'time': 80, 'ncpus': 1})
+
             self.args += args
-            self.args.append(os.path.join(self.cwd,input + "_2.fq.gz"))
+            self.args.append(os.path.join(self.cwd, 'fastq', input + "_2.fq.gz"))
             self.setup_run()
             run_cmd2 = self.run_command
             self.run_command = run_cmd1 + "; " + run_cmd2
         else:
-            self.args.append(os.path.join(self.cwd,input + ".fq.gz"))
+            self.args.append(os.path.join(self.cwd, 'fastq', input + ".fq.gz"))
             self.setup_run()
+
         return
 
 class Gsnap(BaseWrapper):
@@ -301,8 +312,18 @@ class Gsnap(BaseWrapper):
 
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
+
+        ## set the checkpoint target file
         kwargs['target'] = hashlib.sha224(input + '.sam').hexdigest() + ".txt"
         self.init(name, **kwargs)
+
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+            if 'ncpus' in kwargs.get('add_job_parms').keys():
+                self.args += [' -t ' + str(kwargs.get('add_job_parms')['ncpus'])]
+        else:
+            self.job_parms.update({'mem': 1000, 'time': 80, 'ncpus': 1})
+
         if self.paired_end:
             kwargs['source'] = hashlib.sha224(input + '_2_fastqc.gzip').hexdigest() + ".txt"
         else:
@@ -310,16 +331,16 @@ class Gsnap(BaseWrapper):
         self.setup_args()
         self.args += args
         if self.paired_end:
-            self.args.append(os.path.join(self.cwd,input + "_1.fq.gz"))
-            self.args.append(os.path.join(self.cwd,input + "_2.fq.gz"))
+            self.args.append(os.path.join(self.cwd, 'fastq', input + "_1.fq.gz"))
+            self.args.append(os.path.join(self.cwd, 'fastq', input + "_2.fq.gz"))
         else:
-            self.args.append(os.path.join(self.cwd,input + ".fq.gz"))
+            self.args.append(os.path.join(self.cwd, 'fastq', input + ".fq.gz"))
         # self.cmd = ' '.join(chain(self.cmd, map(str, self.args), map(str,input)))
         self.setup_run()
         return
 
     def setup_args(self):
-        self.args += ["--gunzip", "-A sam", "-N1"]
+        self.args += ["--gunzip", "-A sam", "-N1", "--use-shared-memory=0", "-B 5"]
         return
 
 
@@ -341,10 +362,16 @@ class SamToMappedBam(BaseWrapper):
         kwargs['target'] = hashlib.sha224(input + '.bam').hexdigest() + ".txt"
         name = name + " view"
         self.init(name, **kwargs)
-        self.args = ["-F 0x4","-Sbh ", "-o", os.path.join(self.cwd,input + ".bam")]
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+        else:
+            self.job_parms.update({'mem': 2000, 'time': 80, 'ncpus': 1})
+
+        self.args = ["-F 0x4", "-Sbh ", "-o", os.path.join(self.align_dir, input + ".bam")]
         self.args += args
-        self.args.append(os.path.join(self.cwd,input + ".sam"))
+        self.args.append(os.path.join(self.align_dir, input + ".sam"))
         self.setup_run()
+        self.name = self.name + " mapped"
         return
 
 class SamToUnmappedBam(BaseWrapper):
@@ -353,10 +380,17 @@ class SamToUnmappedBam(BaseWrapper):
         kwargs['target'] = hashlib.sha224(input + '.unmapped.bam').hexdigest() + ".txt"
         name = name + " view"
         self.init(name, **kwargs)
-        self.args = ["-f 0x4", "-Sbh ", "-o", os.path.join(self.cwd,input + ".unmapped.bam")]
+
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+        else:
+            self.job_parms.update({'mem': 2000, 'time': 80, 'ncpus': 1})
+
+        self.args = ["-f 0x4", "-Sbh ", "-o", os.path.join(self.align_dir, input + ".unmapped.bam")]
         self.args += args
-        self.args.append(os.path.join(self.cwd,input + ".sam"))
+        self.args.append(os.path.join(self.align_dir, input + ".sam"))
         self.setup_run()
+        self.name = self.name + " unmapped"
         return
 
 
@@ -366,9 +400,17 @@ class SamToolsSort(BaseWrapper):
         kwargs['target'] = hashlib.sha224(input + '.srtd.bam').hexdigest() + ".txt"
         name = name + " sort"
         self.init(name, **kwargs)
-        self.args = ["-o", os.path.join(self.cwd, input + ".srtd.bam")]
+
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+            if 'ncpus' in kwargs.get('add_job_parms').keys():
+                self.args += [' -t ' + str(kwargs.get('add_job_parms')['ncpus'])]
+        else:
+            self.job_parms.update({'mem': 1000, 'time': 80, 'ncpus': 1})
+
+        self.args = ["-o", os.path.join(self.align_dir, input + ".srtd.bam")]
         self.args += args
-        self.args.append(os.path.join(self.cwd,input + ".bam"))
+        self.args.append(os.path.join(self.align_dir, input + ".bam"))
         self.setup_run()
         return
 
@@ -379,7 +421,12 @@ class SamIndex(BaseWrapper):
         kwargs['target'] = hashlib.sha224(input + '.srtd.bam.bai').hexdigest() + ".txt"
         name = name + " index"
         self.init(name, **kwargs)
-        self.args = [os.path.join(self.cwd,input + ".srtd.bam")]
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+        else:
+            self.job_parms.update({'mem': 1000, 'time': 80, 'ncpus': 1})
+
+        self.args = [os.path.join(self.align_dir, input + ".srtd.bam")]
         self.args += args
         self.setup_run()
         return
@@ -390,9 +437,16 @@ class BiobambamMarkDup(BaseWrapper):
         self.input = input
         kwargs['target'] = hashlib.sha224(input + '.dup.srtd.bam').hexdigest() + ".txt"
         self.init(name, **kwargs)
-        self.args = ["I=" + os.path.join(self.cwd,input + ".srtd.bam"),
-                     "O=" + os.path.join(self.cwd,input + ".dup.srtd.bam"),
-                     "M=" + os.path.join(self.cwd,input + ".dup.metrics.txt")]
+
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+        else:
+            self.job_parms.update({'mem': 10000, 'time': 80, 'ncpus': 1})
+
+        self.args = ["index=0",
+                     "I=" + os.path.join(self.align_dir, input + ".srtd.bam"),
+                     "O=" + os.path.join(self.align_dir, input + ".dup.srtd.bam"),
+                     "M=" + os.path.join(self.qc_dir, input + ".dup.metrics.txt")]
         self.args += args
         self.setup_run()
         return
@@ -410,18 +464,26 @@ class QualiMapRnaSeq(BaseWrapper):
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
         kwargs['target'] = hashlib.sha224(input + '.qualimapReport.html').hexdigest() + ".txt"
+        name = ' '.join(name.split('_'))
         self.init(name, **kwargs)
-        name = name + " rnaseq"
+
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+            if 'mem' in kwargs.get('add_job_parms').keys():
+                self.args += [' --java-mem-size=' + str(kwargs.get('add_job_parms')['mem']) + 'M']
+        else:
+            self.job_parms.update({'mem': 10000, 'time': 80, 'ncpus': 8})
+            self.args += [' --java-mem-size=10000M']
         # "-bam /gpfs/scratch/aragaven/lapierre_test_workflow/samp_S14.dup.srtd.bam " \
         # "-gtf /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf " \
         # "-outdir /gpfs/scratch/aragaven/test_workflow/align_qc/S14"
         gtf = kwargs.get('gtf_file')
-        self.args = [" -bam " + os.path.join(kwargs.get('cwd'), input + ".dup.srtd.bam"),
+        self.args += [" -bam " + os.path.join(kwargs.get('align_dir'), input + ".dup.srtd.bam"),
                      " -gtf " + gtf,
-                     " -outdir " + os.path.join(kwargs.get('cwd'), "align_qc", input)]
+                      " -outdir " + os.path.join(kwargs.get('cwd'), "qc", input)]
         self.args += args
-        rename_results = ' '.join([" cp ", os.path.join(kwargs.get('cwd'), "align_qc", input, "qualimapReport.html "),
-                                   os.path.join(kwargs.get('cwd'), "align_qc", input, input + "_qualimapReport.html ")])
+        rename_results = ' '.join([" cp ", os.path.join(kwargs.get('qc_dir'), input, "qualimapReport.html "),
+                                   os.path.join(kwargs.get('qc_dir'), input, input + "_qualimapReport.html ")])
         self.setup_run(add_command=rename_results)
         return
 

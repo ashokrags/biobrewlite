@@ -1,25 +1,29 @@
 bioproject: Project_nm_1
 experiment: rnaseq_pilot
 sample_manifest:
-  fastq_file: /Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_min_remote.csv
+  fastq_file: /Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_manifest_min.csv
   metadata:
 run_parms:
-  work_dir: /gpfs/scratch/aragaven/lapierre_test_workflow
+  conda_command: source activate cbc_conda_test
+  work_dir: /gpfs/scratch/aragaven/namrata_testdat
   log_dir: logs
-  paired_end: True
+  paired_end: False
   local_targets: True
   luigi_local_path: /Users/aragaven/scratch/test_workflow
   db: sqlite
   db_loc: ':memory:'
   saga_host: ssh.ccv.brown.edu
   ssh_user: aragaven
+  saga_scheduler: slurm+ssh
+  gtf_file: /gpfs/data/cbc/cbcollab/ref_tools/Ensembl_mus_GRCm38.p5_rel89/Mus_musculus.GRCm38.89.gtf
 workflow_sequence:
   fastqc: default
   gsnap:
-    -d: c_elegans_Ws8
-    -s: caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.splicesites.iit
-qc_checkpoints:
-  fastqc_qc: default
-  align_qc: default
-  counts_qc: default
-
+    options:
+      -d: Ensembl_mus_GRCm38.p5_rel89
+      -s: Mus_musculus.GRCm38.89.splicesites.iit
+    job_params:
+      ncpus: 8
+      mem: 40000
+      time: 80
+  qualimap_rnaseq: default

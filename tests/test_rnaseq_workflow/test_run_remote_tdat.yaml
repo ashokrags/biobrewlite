@@ -13,6 +13,7 @@ run_parms:
   db_loc: ':memory:'
   saga_host: ssh.ccv.brown.edu
   ssh_user: aragaven
+  saga_scheduler: slurm+ssh
   gtf_file: /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf
   genome_file: 
 workflow_sequence:

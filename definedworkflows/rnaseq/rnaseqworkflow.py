@@ -1,4 +1,4 @@
-import luigi, yaml, saga, os, jsonpickle, time, subprocess
+import luigi, yaml, saga, os, jsonpickle, time, subprocess, copy
 from sqlalchemy.orm import sessionmaker
 import biobrewliteutils.catalog_base as cb
 from biobrewliteutils.catalog import *
@@ -13,23 +13,24 @@ class BaseTask:
         self.jobparms['workdir'] = self.parms.cwd
 
         ## Hack to get the command to work for now
-        self.jobparms['command'] = 'echo $PATH\n'
-        self.jobparms['command'] += self.parms.conda_path + "\n"
+        self.jobparms['command'] = '#SBATCH -vvvv\n echo $PATH\n'
+        self.jobparms['command'] += self.parms.conda_command + "\n"
 
         # self.jobparms['command'] +='source activate cbc_conda\n'
         self.jobparms['command'] += 'srun '
-        self.jobparms['command'] += self.parms.run_command
+        self.jobparms['command'] += self.parms.run_command + "\n"
+        self.jobparms['command'] += "srun --cpus-per-task=1 --time=1 echo 'DONE' > " + self.parms.luigi_target
+
         prog_name = self.parms.name.replace(" ", "_")
-        self.name = self.parms.input + ":" + prog_name
-        self.__class__.__name__ = self.name
-        self.jobparms['out'] = os.path.join(self.parms.cwd, self.parms.log_dir, 'slurm_logs',
-                                            self.parms.input + "_" + prog_name + "_mysagajob.stdout")
-        self.jobparms['error'] = os.path.join(self.parms.cwd, self.parms.log_dir, 'slurm_logs',
-                                              self.parms.input + "_" + prog_name + "_mysagajob.stderr")
+        self.name = self.parms.input + "_" + prog_name
+        ## Replace class name to be reflected in the luigi visualizer
+        ##self.__class__.__name__ = self.name
+
+        self.jobparms['out'] = os.path.join(self.parms.log_dir, self.name + "_mysagajob.stdout")
+        self.jobparms['error'] = os.path.join(self.parms.log_dir, self.name + "_mysagajob.stderr")
         self.jobparms['outfilesource'] = 'ssh.ccv.brown.edu:' + self.parms.luigi_target
         self.jobparms['outfiletarget'] = '' + os.path.dirname(self.parms.luigi_local_target) + "/"
-        # + os.path.basename(self.parms.luigi_target)
-        # print self.jobparms
+        print self.jobparms
         return
 
     def create_saga_job(self, **kwargs):
@@ -43,25 +44,28 @@ class BaseTask:
         jd.executable = ''
         jd.arguments = [kwargs.get('command')]  # cmd
         jd.working_directory = kwargs.get('work_dir', os.getcwd())
-        jd.wall_time_limit = kwargs.get('-t', 60)
-        jd.total_physical_memory = kwargs.get('-m', 2000)
+        jd.wall_time_limit = kwargs.get('time', 60)
+        jd.total_physical_memory = kwargs.get('mem', 2000)
         jd.number_of_processes = 1
         jd.processes_per_host = 1
-        jd.total_cpu_count = kwargs.get('-c', 1)
+        jd.total_cpu_count = kwargs.get('ncpus', 1)
         jd.output = kwargs.get('out', os.path.join(jd.working_directory, "mysagajob.stdout"))
         jd.error = kwargs.get('error', "mysagajob.stderr")
-
-        js = saga.job.Service("slurm+ssh://ssh.ccv.brown.edu", session=session)
+        host = kwargs.get('saga_host', 'localhost')
+        scheduler = kwargs.get('saga_scheduler', 'fork')
+        js = saga.job.Service(scheduler + "://" + host, session=session)
         myjob = js.create_job(jd)
         # Now we can start our job.
         # print " \n ***** SAGA: job Started ****\n"
         myjob.run()
+
         myjob.wait()
         # print " \n ***** SAGA: job Done ****\n"
         # print kwargs.get('outfilesource')
         # out = saga.filesystem.File(kwargs.get('outfilesource'), session=session)
         # print kwargs.get('outfiletarget')
         # out.copy(kwargs.get('outfiletarget'))
+        # subprocess.call(' '.join(['ssh ', host+server] ))
         subprocess.call(' '.join(['scp ', kwargs.get('outfilesource'), kwargs.get('outfiletarget')]), shell=True)
         # print "\n **** SAGA: copy Done ***** \n"
         # out.close()
@@ -74,12 +78,18 @@ class TopTask(luigi.Task, BaseTask):
 
     def run(self):
         self.setup()
+        self.__class__.__name__ = self.name
         job = self.create_saga_job(**self.jobparms)
         return
 
     def output(self):
         self.setup()
-        return luigi.LocalTarget(self.parms.luigi_local_target)
+        self.__class__.__name__ = self.name
+        if self.parms.local_target:
+            # lcs.RemoteFileSystem("ssh.ccv.brown.edu").get( self.parms.luigi_target,self.parms.luigi_local_target)
+            return luigi.LocalTarget(self.parms.luigi_local_target)
+        else:
+            return luigi.LocalTarget(self.parms.luigi_target)
 
 
 class TaskSequence(luigi.Task, BaseTask):
@@ -87,21 +97,22 @@ class TaskSequence(luigi.Task, BaseTask):
 
     def requires(self):
         self.setup()
-        if self.parms.luigi_source == "None":
-            return TopTask(prog_parms=[self.parms])
+        newParms = [x for x in self.prog_parms]
+        del newParms[0]
+        if len(newParms) > 1:
+            return TaskSequence(prog_parms=newParms)
         else:
-            newParms = [x for x in self.prog_parms]
-            del newParms[0]
-            if len(newParms) > 0:
-                return TaskSequence(prog_parms=newParms)
+            return TopTask(prog_parms=newParms)
 
     def run(self):
         self.setup()
+        self.__class__.__name__ = self.name
         job = self.create_saga_job(**self.jobparms)
         return
 
     def output(self):
         self.setup()
+        self.__class__.__name__ = self.name
         if self.parms.local_target:
             # lcs.RemoteFileSystem("ssh.ccv.brown.edu").get( self.parms.luigi_target,self.parms.luigi_local_target)
             return luigi.LocalTarget(self.parms.luigi_local_target)
@@ -128,7 +139,7 @@ class BaseWorkflow:
         self.prog_wrappers = {'feature_counts': wr.BedtoolsCounts,
                               'gsnap': wr.Gsnap,
                               'fastqc': wr.FastQC,
-                              'qualimap': wr.QualiMapRnaSeq,
+                              'qualimap_rnaseq': wr.QualiMapRnaSeq,
                               'samtomapped': wr.SamToMappedBam,
                               'samtounmapped': wr.SamToUnmappedBam,
                               'samindex': wr.SamIndex,
@@ -174,10 +185,16 @@ class RnaSeqFlow(BaseWorkflow):
 
     def __init__(self, parmsfile):
         self.init(parmsfile)
+        if 'saga_host' in self.run_parms.keys():
+            self.job_params['saga_host'] = self.run_parms['saga_host']
+        if 'saga_user' in self.run_parms.keys():
+            self.job_params['ssh_user'] = self.run_parms['ssh_user']
+        if 'saga_scheduler' in self.run_parms.keys():
+            self.job_params['saga_scheduler'] = self.run_parms['saga_scheduler']
         self.paired_end = False
         self.parse_sample_info()
-        self.set_base_kwargs()
         self.setup_paths()
+        self.set_base_kwargs()
         self.create_catalog()
         return
 
@@ -253,8 +270,12 @@ class RnaSeqFlow(BaseWorkflow):
         :return: 
         """
         if remote:
+            session = saga.Session()
+            ctx = saga.Context("ssh")
+            ctx.user_id = self.run_parms['ssh_user']
+            session.add_context(ctx)
             try:
-                dir = saga.filesystem.Directory(path)
+                dir = saga.filesystem.Directory(path, session=session)
             except:
                 print os.path.dirname(path)
                 dir = saga.filesystem.Directory(os.path.dirname(path))
@@ -272,16 +293,18 @@ class RnaSeqFlow(BaseWorkflow):
         self.fastq_dir = os.path.join(self.work_dir, 'fastq')
         self.align_dir = os.path.join(self.work_dir, 'alignments')
         self.expression_dir = os.path.join(self.work_dir, 'expression')
+        self.qc_dir = os.path.join(self.work_dir, 'qc')
         return
 
     def test_paths(self):
         paths_to_test = [self.work_dir, self.log_dir, self.checkpoint_dir,
-                         self.fastq_dir, self.align_dir, self.expression_dir]
+                         self.fastq_dir, self.align_dir, self.expression_dir, self.qc_dir]
         remote_dirs_flag = False
         if self.run_parms['saga_host'] != "localhost":
             remote_dirs_flag = True
             remote_prefix = "sftp://" + self.run_parms['saga_host']
-            [x.replace(os.path.join(remote_prefix, x)) for x in paths_to_test]
+            paths_to_test = [remote_prefix + "/" + x for x in paths_to_test]
+            print paths_to_test
 
         for p in paths_to_test:
             self.check_paths(p, remote_dirs_flag)
@@ -304,19 +327,19 @@ class RnaSeqFlow(BaseWorkflow):
         for samp, fileName in self.sample_fastq.iteritems():
             self.sample_fastq_work[samp] = []
             if len(fileName) < 2:
-                symlnk_name = os.path.join(self.run_parms['work_dir'], samp + ".fq.gz")
+                symlnk_name = os.path.join(self.fastq_dir, samp + ".fq.gz")
                 # cmds.append(' '.join(['/bin/ln', '-s', fileName[0], symlnk_name]))
                 cmds.append(' '.join(['/bin/ln', '-s', fileName[0], symlnk_name, "; echo DONE:", fileName[0], ">> "]))
                 self.sample_fastq_work[samp].append(symlnk_name)
             else:
                 num = 1
                 for fq_file in fileName:
-                    symlnk_name = os.path.join(self.run_parms['work_dir'], samp + "_" + str(num) + ".fq.gz")
+                    symlnk_name = os.path.join(self.fastq_dir, samp + "_" + str(num) + ".fq.gz")
                     # cmds.append(' '.join(['/bin/ln','-s', fq_file, symlnk_name]))
                     cmds.append(' '.join(['/bin/ln', '-s', fq_file, symlnk_name, "; echo DONE:", fq_file, ">> "]))
                     self.sample_fastq_work[samp].append(symlnk_name)
                     num += 1
-        # print cmds
+        print cmds
 
         # setup remote session
 
@@ -372,10 +395,14 @@ class RnaSeqFlow(BaseWorkflow):
         return
 
     def set_base_kwargs(self):
-        self.base_kwargs['cwd'] = self.run_parms['work_dir']
+        self.base_kwargs['cwd'] = self.work_dir
+        self.base_kwargs['align_dir'] = self.align_dir
+        self.base_kwargs['qc_dir'] = self.qc_dir
         self.base_kwargs['conda_command'] = self.run_parms.get('conda_command', 'source activate cbc_conda_test')
         self.base_kwargs['job_parms'] = self.job_params
-        self.base_kwargs['log_dir'] = self.run_parms.get('log_dir', 'logs')
+        self.base_kwargs['job_parms_type'] = "default"
+        self.base_kwargs['add_job_parms'] = None
+        self.base_kwargs['log_dir'] = self.log_dir
         self.base_kwargs['paired_end'] = self.run_parms.get('paired_end', 'False')
         self.base_kwargs['local_targets'] = self.run_parms.get('local_targets', False)
         self.base_kwargs['luigi_local_path'] = self.run_parms.get('luigi_local_path', os.getcwd())
@@ -400,139 +427,103 @@ class RnaSeqFlow(BaseWorkflow):
                     # Add additional samtools processing steps to GSNAP output
 
                     tmp_prog = self.prog_wrappers['samdup']('bammarkduplicates2', samp,
-                                                            stdout=os.path.join(self.run_parms['work_dir'],
-                                                                                self.run_parms['log_dir'],
-                                                                                samp + '_bamdup.log'),
+                                                            stdout=os.path.join(self.log_dir, samp + '_bamdup.log'),
                                                             **dict(self.base_kwargs)
                                                             )
                     print tmp_prog.run_command
-                    print self.job_params
-                    print tmp_prog.job_parms
-
-                    tmp_prog.job_parms['mem'] = 10000
-                    tmp_prog.job_parms['time'] = 60
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
                     tmp_prog = self.prog_wrappers['samindex']('samtools', samp,
-                                                              stdout=os.path.join(self.run_parms['work_dir'],
-                                                                                  self.run_parms['log_dir'],
-                                                                                  samp + '_bamidx.log'),
+                                                              stdout=os.path.join(self.log_dir, samp + '_bamidx.log'),
                                                               **dict(self.base_kwargs)
                                                               )
                     print tmp_prog.run_command
-                    # print self.job_params
-                    tmp_prog.job_parms['mem'] = 10000
-                    tmp_prog.job_parms['time'] = 60
-                    # print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
                     tmp_prog = self.prog_wrappers['samsort']('samtools', samp,
-                                                             stdout=os.path.join(self.run_parms['work_dir'],
-                                                                                 self.run_parms['log_dir'],
-                                                                                 samp + '_bamsrt.log'),
+                                                             stdout=os.path.join(self.log_dir, samp + '_bamsrt.log'),
                                                              **dict(self.base_kwargs)
                                                              )
                     print tmp_prog.run_command
-                    # print self.job_params
-                    tmp_prog.job_parms['mem'] = 20000
-                    tmp_prog.job_parms['time'] = 60 * 5
-                    # print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
                     tmp_prog = self.prog_wrappers['samtomapped']('samtools', samp,
-                                                                 stdout=os.path.join(self.run_parms['work_dir'],
-                                                                                     self.run_parms['log_dir'],
+                                                                 stdout=os.path.join(self.log_dir,
                                                                                      samp + '_samtobam.log'),
                                                                  **dict(self.base_kwargs)
                                                                  )
                     print tmp_prog.run_command
-                    # print self.job_params
-                    tmp_prog.job_parms['mem'] = 2000
-                    tmp_prog.job_parms['time'] = 60
-                    # print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
                     tmp_prog = self.prog_wrappers['samtounmapped']('samtools', samp,
-                                                                   stdout=os.path.join(self.run_parms['work_dir'],
-                                                                                       self.run_parms['log_dir'],
+                                                                   stdout=os.path.join(self.log_dir,
                                                                                        samp + '_samtounmappedbam.log'),
                                                                    **dict(self.base_kwargs)
                                                                    )
                     print tmp_prog.run_command
-                    # print self.job_params
-                    tmp_prog.job_parms['mem'] = 2000
-                    tmp_prog.job_parms['time'] = 60
-                    # print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
-                    prog_args = [x for x in self.progs[key]]
-                    print prog_args
+                    new_base_kwargs = self.update_job_parms(key)
 
-                    if self.progs_job_parms[key] != 'default' and 'ncpus' in self.progs_job_parms[key].keys():
-                        prog_args.append("-t " + str(self.progs_job_parms[key]['ncpus']))
-                    else:
-                        prog_args.append('-t 8')
+                    tmp_prog = self.prog_wrappers[key](key, samp, *self.progs[key],
+                                                       stdout=os.path.join(self.align_dir, samp + '.sam'),
+                                                       **dict(new_base_kwargs))
 
-                    print prog_args
-                    tmp_prog = self.prog_wrappers[key](key, samp, *prog_args,
-                                                       stdout=os.path.join(self.run_parms['work_dir'],
-                                                                           samp + '.sam'),
-                                                       **dict(self.base_kwargs))
                     print tmp_prog.run_command
-                    # print self.job_params
-
-                    ## Update the job parameter for the program from default if needed
-                    ##print self.progs_job_parms[key]
-                    if self.progs_job_parms[key] != 'default':
-                        tmp_prog.job_parms.update(self.progs_job_parms[key])
-                        # tmp_prog.job_parms['-m'] = self.progs_job_parms[key]['-m']
-                        # tmp_prog.job_parms['-t'] = self.progs_job_parms[key]['-t']
-                        # tmp_prog.job_parms['-c'] = self.progs_job_parms[key]['-c']
-                    print tmp_prog.job_parms
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
                 else:
+                    # print "\n**** Base kwargs *** \n"
+                    # print self.base_kwargs
                     tmp_prog = self.prog_wrappers[key](key, samp,
                                                        stdout=os.path.join(self.run_parms['work_dir'],
                                                                            self.run_parms['log_dir'],
                                                                            samp + '_' + key + '.log'),
                                                        **dict(self.base_kwargs)
                                                        )
-                    samp_progs.append(jsonpickle.encode(tmp_prog))
                     print tmp_prog.run_command
+                    samp_progs.append(jsonpickle.encode(tmp_prog))
                     # print self.job_params
-                    tmp_prog.job_parms['mem'] = 1000
-                    tmp_prog.job_parms['time'] = 80
-                    tmp_prog.job_parms['ncpus'] = 1
-                    # print tmp_prog.job_parms
+                    # tmp_prog.job_parms['mem'] = 1000
+                    # tmp_prog.job_parms['time'] = 80
+                    # tmp_prog.job_parms['ncpus'] = 1
+                    ## Need to fix to read in options and parms
 
             # Remove the first job and re-add it without any targets
 
-            del samp_progs[-1]
-            tmp_prog = self.prog_wrappers[key](key, samp,
-                                               stdout=os.path.join(self.run_parms['work_dir'],
-                                                                   self.run_parms['log_dir'],
-                                                                   samp + '_' + key + '.log'),
-                                               **dict(self.base_kwargs)
-                                               )
-            samp_progs.append(jsonpickle.encode(tmp_prog))
-            print tmp_prog.run_command
-            # print self.job_params
-            # print tmp_prog.job_parms
-            # print samp_progs
-
+            # del samp_progs[-1]
+            # tmp_prog = self.prog_wrappers[key](key, samp,
+            #                                    stdout=os.path.join(self.log_dir,samp + '_' + key + '.log'),
+            #                                    **dict(self.base_kwargs)
+            #                                    )
+            # tmp_prog.luigi_source = "None"
+            # samp_progs.append(jsonpickle.encode(tmp_prog))
+            # print "\n**** Command after removal *** \n"
+            # print tmp_prog.run_command
+            # for k,v in tmp_prog.__dict__.iteritems():
+            #     print k,v
+            # # print self.job_params
+            # # print tmp_prog.job_parms
+            # print tmp_prog.luigi_source
             # self.allTasks.append(TaskSequence(samp_progs))
             self.allTasks.append(jsonpickle.encode(TaskSequence(samp_progs)))
-            # print self.allTasks
+            #print self.allTasks
 
         return
 
+    def update_job_parms(self, key):
+
+        new_base_kwargs = copy.deepcopy(self.base_kwargs)
+        if self.progs_job_parms[key] != 'default':
+            new_base_kwargs['job_parms_type'] = "custom"
+            new_base_kwargs['add_job_parms'] = self.progs_job_parms[key]
+        return new_base_kwargs
 
 if __name__ == '__main__':
     parmsfile = "/home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_tdat.yaml"

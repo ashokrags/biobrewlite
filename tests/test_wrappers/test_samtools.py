@@ -27,10 +27,12 @@ class TestSamToBam(unittest.TestCase):
     def setUp(self):
         self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run.yaml"
         self.rw1 = rsw(self.parmsfile)
-        #self.rw1.parse_prog_info()
+        self.rw1.set_base_kwargs()
+        self.rw1.parse_prog_info()
         self.wrapper_name = 'samtools'
-        self.samtobam_test=wr.SamToBam(self.wrapper_name,"test_samp", cwd=self.rw1.run_parms['work_dir'],
-                                        stdout=os.path.join(self.rw1.run_parms['work_dir'],'samtools_view.log'))
+        self.samtobam_test = wr.SamToMappedBam(self.wrapper_name, "test_samp",
+                                               stdout=os.path.join(self.rw1.run_parms['work_dir'], 'samtools_view.log'),
+                                               **dict(self.rw1.base_kwargs))
 
     def test_samtools_wrapper(self):
         print "\n***** Testing samtobam_wrapper command *****\n"
@@ -45,10 +47,13 @@ class TestSamtoolsSort(unittest.TestCase):
     def setUp(self):
         self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run.yaml"
         self.rw1 = rsw(self.parmsfile)
+        self.rw1.set_base_kwargs()
         self.rw1.parse_prog_info()
         self.wrapper_name = 'samtools'
-        self.samtoolssort_test=wr.SamToolsSort(self.wrapper_name,"test_samp", cwd=self.rw1.run_parms['work_dir'],
-                                        stdout=os.path.join(self.rw1.run_parms['work_dir'],'samtools_sort.log'))
+        self.samtoolssort_test = wr.SamToolsSort(self.wrapper_name, "test_samp",
+                                                 stdout=os.path.join(self.rw1.run_parms['work_dir'],
+                                                                     'samtools_sort.log'),
+                                                 **dict(self.rw1.base_kwargs))
 
     def test_samtools_wrapper(self):
         print "\n***** Testing samtoolsort_wrapper command *****\n"
@@ -63,10 +68,12 @@ class TestSamtoolsIndex(unittest.TestCase):
     def setUp(self):
         self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run.yaml"
         self.rw1 = rsw(self.parmsfile)
-        #self.rw1.parse_prog_info()
+        self.rw1.set_base_kwargs()
+        self.rw1.parse_prog_info()
         self.wrapper_name = 'samtools'
-        self.samtoolsindex_test=wr.SamIndex(self.wrapper_name,"test_samp", cwd=self.rw1.run_parms['work_dir'],
-                                        stdout=os.path.join(self.rw1.run_parms['work_dir'],'samtools_index.log'))
+        self.samtoolsindex_test = wr.SamIndex(self.wrapper_name, "test_samp",
+                                              stdout=os.path.join(self.rw1.run_parms['work_dir'], 'samtools_index.log'),
+                                              **dict(self.rw1.base_kwargs))
 
     def test_samtoolsindex_wrapper(self):
         print "\n***** Testing samtoolindex_wrapper command *****\n"

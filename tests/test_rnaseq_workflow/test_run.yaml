@@ -21,6 +21,7 @@ workflow_sequence:
       ncpus: 8
       mem: 5g
       time: 10:00:00
+  qualimap-rnaseq: default
 qc_checkpoints:
   fastqc_qc: default
   align_qc: default
