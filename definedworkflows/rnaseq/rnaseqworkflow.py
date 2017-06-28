@@ -78,13 +78,13 @@ class TopTask(luigi.Task, BaseTask):
 
     def run(self):
         self.setup()
-        self.__class__.__name__ = self.name
+        self.__class__.__name__ = str(self.name)
         job = self.create_saga_job(**self.jobparms)
         return
 
     def output(self):
         self.setup()
-        self.__class__.__name__ = self.name
+        self.__class__.__name__ = str(self.name)
         if self.parms.local_target:
             # lcs.RemoteFileSystem("ssh.ccv.brown.edu").get( self.parms.luigi_target,self.parms.luigi_local_target)
             return luigi.LocalTarget(self.parms.luigi_local_target)
