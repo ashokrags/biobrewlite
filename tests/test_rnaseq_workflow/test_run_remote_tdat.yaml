@@ -24,7 +24,7 @@ workflow_sequence:
       -s: caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.splicesites.iit
     job_params:
       ncpus: 16
-      mem: 10000
+      mem: 20000
       time: 600
   qualimap_rnaseq: default
 qc_checkpoints:
