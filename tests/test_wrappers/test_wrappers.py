@@ -72,7 +72,8 @@ class TestGsnap(unittest.TestCase):
     def test_gsnap_wrapper(self):
         print "\n***** Testing Gsnap_wrapper command *****\n"
         print self.gsnap_test.run_command
-        out_command = "gsnap  -t 8 --gunzip -A sam -N1 --use-shared-memory=0 -B 5 -d Ensembl_Mus_musculus_GRCm38 -s Mus_musculus.GRCm38.88.splicesites.iit /gpfs/scratch/aragaven/test_workflow/fastq/test_samp_1.fq.gz /gpfs/scratch/aragaven/test_workflow/fastq/test_samp_2.fq.gz 2>>/gpfs/scratch/aragaven/test_workflow/logs/test_samp_gsnap_err.log 1>/gpfs/scratch/aragaven/test_workflow/alignments/gsnap.sam"
+        print self.gsnap_test.job_parms
+        out_command = "gsnap  -t 8 --gunzip -A sam -N1 --use-shared-memory=0 -d Ensembl_Mus_musculus_GRCm38 -s Mus_musculus.GRCm38.88.splicesites.iit /gpfs/scratch/aragaven/test_workflow/fastq/test_samp_1.fq.gz /gpfs/scratch/aragaven/test_workflow/fastq/test_samp_2.fq.gz 2>>/gpfs/scratch/aragaven/test_workflow/logs/test_samp_gsnap_err.log 1>/gpfs/scratch/aragaven/test_workflow/alignments/gsnap.sam"
         self.assertEqual(self.gsnap_test.run_command, out_command)
         # print "\n***** Testing Gsnap_wrapper *****\n"
         # for k, v in self.gsnap_test.__dict__.iteritems():

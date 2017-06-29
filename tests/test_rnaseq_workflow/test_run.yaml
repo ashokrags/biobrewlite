@@ -18,9 +18,9 @@ workflow_sequence:
       -d: Ensembl_Mus_musculus_GRCm38
       -s: Mus_musculus.GRCm38.88.splicesites.iit
     job_params:
+      mem: 40000
       ncpus: 8
-      mem: 5g
-      time: 10:00:00
+      time: 600
   qualimap-rnaseq: default
 qc_checkpoints:
   fastqc_qc: default
