@@ -65,7 +65,7 @@ class TestRnaSeqFlow(TestCase):
         self.rw1.chain_commands()
         luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=False,
                     workers=len(self.rw1.sample_fastq_work.keys()), lock_size=1)
-        # luigi.build([TaskFlow(tasks=self.rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
+        # # luigi.build([TaskFlow(tasks=self.rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
         # luigi.build(self.rw1.allTasks, local_scheduler=False, workers=3, lock_size=3)
 
 
