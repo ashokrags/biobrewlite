@@ -123,7 +123,7 @@ class TaskSequence(luigi.Task, BaseTask):
 class TaskFlow(luigi.WrapperTask):
     tasks = luigi.ListParameter()
     task_name = luigi.Parameter()
-    task_namespace = task_name
+    task_namespace = "BioProject"
 
     def requires(self):
         for x in self.tasks:
