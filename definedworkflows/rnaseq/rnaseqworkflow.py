@@ -1,4 +1,4 @@
-import luigi, yaml, saga, os, jsonpickle, time, subprocess, copy
+import luigi, yaml, saga, os, jsonpickle, time, subprocess, copy, sys
 from sqlalchemy.orm import sessionmaker
 import biobrewliteutils.catalog_base as cb
 from biobrewliteutils.catalog import *
@@ -526,7 +526,8 @@ class RnaSeqFlow(BaseWorkflow):
         return new_base_kwargs
 
 if __name__ == '__main__':
-    parmsfile = "/home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_tdat.yaml"
+    # parmsfile = "/home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_tdat.yaml"
+    parmsfile = sys.argv[1]
     rw1 = RnaSeqFlow(parmsfile)
     #
     # print "\n***** Printing config Parsing ******\n"
@@ -554,7 +555,7 @@ if __name__ == '__main__':
     rw1.test_paths()
     rw1.symlink_fastqs()
     rw1.chain_commands()
-    luigi.build([TaskFlow(tasks=rw1.allTasks, task_name=rw1.bioproject)], local_scheduler=False,
+    luigi.build([TaskFlow(tasks=rw1.allTasks, task_name=rw1.bioproject)], local_scheduler=True,
                 workers=len(rw1.sample_fastq_work.keys()), lock_size=1)
     # luigi.build([TaskFlow(tasks=rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
     # luigi.build(self.rw1.allTasks, local_scheduler=False, workers=3, lock_size=3)
