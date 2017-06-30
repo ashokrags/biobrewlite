@@ -5,16 +5,16 @@ sample_manifest:
   metadata:
 run_parms:
   conda_command: source activate cbc_conda_test
-  work_dir: /gpfs/scratch/aragaven/namrata_final
+  work_dir: /gpfs/scratch/aragaven/namrata_final_2
   log_dir: logs
   paired_end: False
-  local_targets: False
-  luigi_local_path: /Users/aragaven/scratch/test_workflow
+  local_targets: True
+  luigi_local_path: /home/aragaven/scratch/test_workflow
   db: sqlite
   db_loc: ':memory:'
   saga_host: localhost
   ssh_user: aragaven
-  saga_scheduler: slurm
+  saga_scheduler: slurm+ssh
   gtf_file: /gpfs/data/cbc/cbcollab/ref_tools/Ensembl_mus_GRCm38.p5_rel89/Mus_musculus.GRCm38.89.gtf
 workflow_sequence:
   fastqc: default
