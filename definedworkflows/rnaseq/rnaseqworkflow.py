@@ -35,10 +35,13 @@ class BaseTask:
 
     def create_saga_job(self, **kwargs):
         ctx = saga.Context("ssh")
-        ctx.user_id = "aragaven"
+        ctx.user_id = kwargs.get('saga_user', 'aragaven')
+        host = kwargs.get('saga_host', 'localhost')
+        scheduler = kwargs.get('saga_scheduler', 'fork')
 
         session = saga.Session()
-        session.add_context(ctx)
+        if host != 'localhost':
+            session.add_context(ctx)
         # describe our job
         jd = saga.job.Description()
         jd.executable = ''
@@ -51,8 +54,6 @@ class BaseTask:
         jd.total_cpu_count = kwargs.get('ncpus', 1)
         jd.output = kwargs.get('out', os.path.join(jd.working_directory, "mysagajob.stdout"))
         jd.error = kwargs.get('error', "mysagajob.stderr")
-        host = kwargs.get('saga_host', 'localhost')
-        scheduler = kwargs.get('saga_scheduler', 'fork')
         js = saga.job.Service(scheduler + "://" + host, session=session)
         myjob = js.create_job(jd)
         # Now we can start our job.
