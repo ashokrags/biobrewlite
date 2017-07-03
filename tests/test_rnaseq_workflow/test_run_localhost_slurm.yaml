@@ -4,7 +4,7 @@ sample_manifest:
   fastq_file: sampl_manifest_min.csv
   metadata:
 run_parms:
-  conda_command: source activate /gpfs/runtime/opt/conda/envs/cbc_conda_test/bin
+  conda_command: source activate /gpfs/runtime/opt/conda/envs/cbc_conda_test
   work_dir: /gpfs/scratch/aragaven/test_workflow
   log_dir: logs
   paired_end: False
