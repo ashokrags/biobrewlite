@@ -95,8 +95,10 @@ class BaseWrapper:
         self.luigi_target = os.path.join(self.cwd, 'checkpoints', kwargs.get('target', "None"))
 
         ## Below for testing only
-        self.local_target =kwargs.get('local_target',True)
-        self.luigi_local_target = os.path.join(kwargs.get('luigi_local_path',"/Users/aragaven/scratch/test_workflow"),
+        self.local_target = kwargs.get('local_targets', True)
+        if self.local_target:
+            self.luigi_local_target = os.path.join(
+                kwargs.get('luigi_local_path', "/Users/aragaven/scratch/test_workflow"),
                                                kwargs.get('target',"None"))
 
         self.stdout = kwargs.get('stdout')
