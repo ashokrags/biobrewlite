@@ -189,6 +189,8 @@ class BaseWrapper:
         # Run the command.
 
         self.env['PATH'] = self.conda_command.split()[2] + self.env['PATH']
+        print "\n ***** print PATH ***** \n"
+        print self.env['PATH']
         try:
             vstring = subprocess.check_output(cmd, env=self.env, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
