@@ -7,13 +7,13 @@ from definedworkflows.rnaseq.rnaseqworkflow import TaskFlow
 import luigi.contrib.ssh as lcs
 
 
-class TestRnaSeqFlow(TestCase):
-    def setUp(self):
-        self.parmsfile = "test_run.yaml"
-        ##self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote.yaml"
-        ##self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_lapierre_pe.yaml"
-
-        self.rw1 = rsw(self.parmsfile)
+# class TestRnaSeqFlow(TestCase):
+#     def setUp(self):
+#         self.parmsfile = "test_run.yaml"
+#         ##self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote.yaml"
+#         ##self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_lapierre_pe.yaml"
+#
+#         self.rw1 = rsw(self.parmsfile)
 
     # def test_parse_config(self):
     #     self.rw1.parse_config(self.parmsfile)
@@ -48,16 +48,16 @@ class TestRnaSeqFlow(TestCase):
     #     self.rw1.parse_sample_info()
     #     self.rw1.symlink_fastqs()
 
-    def test_chain_commands_se(self):
-        self.rw1.sample_fastq_work = {'N2': '/gpfs/scratch/aragaven/test_workflow/sampN2.fq.gz',
-                                      'N3': '/gpfs/scratch/aragaven/test_workflow/sampN3.fq.gz'}
-        # self.rw1.symlink_fastqs
-        self.rw1.set_base_kwargs()
-        self.rw1.parse_prog_info()
-        print self.rw1.progs
-        print "\n***** Printing Chained Commands ******\n"
-        self.rw1.set_base_kwargs()
-        self.rw1.chain_commands()
+# def test_chain_commands_se(self):
+#     self.rw1.sample_fastq_work = {'N2': '/gpfs/scratch/aragaven/test_workflow/sampN2.fq.gz',
+#                                   'N3': '/gpfs/scratch/aragaven/test_workflow/sampN3.fq.gz'}
+#     # self.rw1.symlink_fastqs
+#     self.rw1.set_base_kwargs()
+#     self.rw1.parse_prog_info()
+#     print self.rw1.progs
+#     print "\n***** Printing Chained Commands ******\n"
+#     self.rw1.set_base_kwargs()
+#     self.rw1.chain_commands()
 
 
         # def test_run_chain_commands(self):
@@ -109,27 +109,27 @@ class TestRnaSeqFlowLocalHostSE(TestCase):
     #     self.rw1.parse_sample_info()
     #     self.rw1.symlink_fastqs()
 
-    def test_chain_commands_se(self):
-        self.rw1.sample_fastq_work = {'N2': '/gpfs/scratch/aragaven/test_workflow/sampN2.fq.gz',
-                                      'N3': '/gpfs/scratch/aragaven/test_workflow/sampN3.fq.gz'}
-        # self.rw1.symlink_fastqs
-        self.rw1.set_base_kwargs()
+    # def test_chain_commands_se(self):
+    #     self.rw1.sample_fastq_work = {'N2': '/gpfs/scratch/aragaven/test_workflow/sampN2.fq.gz',
+    #                                   'N3': '/gpfs/scratch/aragaven/test_workflow/sampN3.fq.gz'}
+    #     # self.rw1.symlink_fastqs
+    #     self.rw1.set_base_kwargs()
+    #     self.rw1.parse_prog_info()
+    #     print self.rw1.progs
+    #     print "\n***** Printing Chained Commands ******\n"
+    #     self.rw1.set_base_kwargs()
+    #     self.rw1.chain_commands()
+
+
+    def test_run_chain_commands(self):
         self.rw1.parse_prog_info()
-        print self.rw1.progs
-        print "\n***** Printing Chained Commands ******\n"
-        self.rw1.set_base_kwargs()
+        self.rw1.test_paths()
+        self.rw1.symlink_fastqs()
         self.rw1.chain_commands()
-
-
-        # def test_run_chain_commands(self):
-        #     self.rw1.parse_prog_info()
-        #     self.rw1.test_paths()
-        #     self.rw1.symlink_fastqs()
-        #     self.rw1.chain_commands()
-        #     luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=False,
-        #                 workers=len(self.rw1.sample_fastq_work.keys()), lock_size=1)
-        #     # # luigi.build([TaskFlow(tasks=self.rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
-        #     # luigi.build(self.rw1.allTasks, local_scheduler=False, workers=3, lock_size=3)
+        luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=True,
+                    workers=len(self.rw1.sample_fastq_work.keys()), lock_size=1)
+        # # luigi.build([TaskFlow(tasks=self.rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
+        # luigi.build(self.rw1.allTasks, local_scheduler=False, workers=3, lock_size=3)
 
 
 if __name__ == '__main__':
