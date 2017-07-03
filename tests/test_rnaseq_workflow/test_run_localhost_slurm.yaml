@@ -17,7 +17,6 @@ run_parms:
   saga_scheduler: slurm
   gtf_file: /gpfs/data/cbc/cbcollab/ref_tools/Ensembl_mus_GRCm38.p5_rel89/Mus_musculus.GRCm38.89.gtf
 workflow_sequence:
-  fastqc: default
   gsnap:
     options:
       -d: Ensembl_mus_GRCm38.p5_rel89

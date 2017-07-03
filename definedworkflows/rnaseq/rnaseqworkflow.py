@@ -31,7 +31,6 @@ class BaseTask:
         self.jobparms['outfilesource'] = 'ssh.ccv.brown.edu:' + self.parms.luigi_target
         self.jobparms['outfiletarget'] = '' + os.path.dirname(self.parms.luigi_local_target) + "/"
         print self.jobparms
-        sys.exit(0)
         return
 
     def create_saga_job(self, **kwargs):
