@@ -197,6 +197,8 @@ class RnaSeqFlow(BaseWorkflow):
             self.job_params['saga_scheduler'] = self.run_parms['saga_scheduler']
         else:
             self.job_params['saga_scheduler'] = 'fork'
+        if 'conda_command' not in self.run_parms.keys():
+            self.run_parms['conda_command'] = 'source activate /gpfs/runtime/opt/conda/envs/cbc_conda_test/bin'
         self.paired_end = False
         self.parse_sample_info()
         self.setup_paths()

@@ -165,7 +165,7 @@ class BaseWrapper:
             self.cmd = list(self.cmd.split())
         return
 
-    def version(self, flag=None, path=None):
+    def version(self, flag=None):
         """
         Generates and logs a hash to distinguish this particular installation
         of the program (on a certain host, with a certain compiler, program
@@ -186,8 +186,9 @@ class BaseWrapper:
             cmd.append(flag)
         else:
             cmd.append('-v')
-
         # Run the command.
+
+        self.env['PATH'] = self.conda_command.split()[2] + self.env['PATH']
         try:
             vstring = subprocess.check_output(cmd, env=self.env, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
@@ -195,8 +196,7 @@ class BaseWrapper:
         except OSError as e:
             utils.failed_executable(cmd[0], e)
 
-        if not path:
-            path = self.env['PATH']
+
 
             # Generate a hash.
             # vhash = diagnostics.log_program_version(self.name, vstring, path)
@@ -278,7 +278,7 @@ class FastQC(BaseWrapper):
             kwargs['target'] = hashlib.sha224(input + '_2_fastqc.zip').hexdigest() + ".txt"
         self.init(name, **kwargs)
         # self.luigi_source = "None"
-        # self.version('-v')
+        self.version('-v')
         self.add_threading('-t')
         self.args += [' -o ' + self.qc_dir]
         self.args += args
