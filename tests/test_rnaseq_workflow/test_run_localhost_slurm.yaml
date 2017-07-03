@@ -25,5 +25,5 @@ workflow_sequence:
     job_params:
       ncpus: 16
       mem: 40000
-      time: 600
+      time: 60
   qualimap_rnaseq: default

@@ -31,6 +31,7 @@ class BaseTask:
         self.jobparms['outfilesource'] = 'ssh.ccv.brown.edu:' + self.parms.luigi_target
         self.jobparms['outfiletarget'] = '' + os.path.dirname(self.parms.luigi_local_target) + "/"
         print self.jobparms
+        sys.exit(0)
         return
 
     def create_saga_job(self, **kwargs):
@@ -197,6 +198,7 @@ class RnaSeqFlow(BaseWorkflow):
             self.job_params['saga_scheduler'] = self.run_parms['saga_scheduler']
         else:
             self.job_params['saga_scheduler'] = 'fork'
+
         if 'conda_command' not in self.run_parms.keys():
             self.run_parms['conda_command'] = 'source activate /gpfs/runtime/opt/conda/envs/cbc_conda_test/bin'
         self.paired_end = False
