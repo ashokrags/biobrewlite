@@ -9,10 +9,9 @@ import luigi.contrib.ssh as lcs
 
 class TestRnaSeqFlow(TestCase):
     def setUp(self):
-        ##self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run.yaml"
+        self.parmsfile = "test_run.yaml"
         ##self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote.yaml"
         ##self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_lapierre_pe.yaml"
-        self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_localhost_slurm.yaml"
 
         self.rw1 = rsw(self.parmsfile)
 
@@ -23,25 +22,25 @@ class TestRnaSeqFlow(TestCase):
     #     for k, v in self.rw1.__dict__.iteritems():
     #         print k, v
     #
-    def test_parse_sample_info(self):
-        self.rw1.parse_sample_info()
-        print "\n***** Printing Sample Info ******\n"
-        for k, v in self.rw1.sample_fastq.iteritems():
-            print k, v
-        print self.rw1.paired_end
-
-    def test_parse_prog_info(self):
-        self.rw1.parse_prog_info()
-        print "\n***** Printing Progs dict ******\n"
-        for k, v in self.rw1.progs.iteritems():
-            print k, v
-
-        rev_progs = OrderedDict(reversed(self.rw1.progs.items()))
-        print "\n***** Printing Progs dict in reverse ******\n"
-        for k, v in rev_progs.iteritems():
-            print k, v
-        for k, v in self.rw1.progs_job_parms.iteritems():
-            print k, v
+    # def test_parse_sample_info(self):
+    #     self.rw1.parse_sample_info()
+    #     print "\n***** Printing Sample Info ******\n"
+    #     for k, v in self.rw1.sample_fastq.iteritems():
+    #         print k, v
+    #     print self.rw1.paired_end
+    #
+    # def test_parse_prog_info(self):
+    #     self.rw1.parse_prog_info()
+    #     print "\n***** Printing Progs dict ******\n"
+    #     for k, v in self.rw1.progs.iteritems():
+    #         print k, v
+    #
+    #     rev_progs = OrderedDict(reversed(self.rw1.progs.items()))
+    #     print "\n***** Printing Progs dict in reverse ******\n"
+    #     for k, v in rev_progs.iteritems():
+    #         print k, v
+    #     for k, v in self.rw1.progs_job_parms.iteritems():
+    #         print k, v
 
     # def test_symlink_fastqs(self):
     #     #self.rw1.sample_fastq = {'sampN2': ['/gpfs/scratch/aragaven/test_workflow/N1-BC1_AACCAG_R1.fastq.gz'],
@@ -74,7 +73,7 @@ class TestRnaSeqFlow(TestCase):
 
 class TestRnaSeqFlowLocalHostSE(TestCase):
     def setUp(self):
-        self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_localhost_slurm.yaml"
+        self.parmsfile = "test_run_localhost_slurm.yaml"
         self.rw1 = rsw(self.parmsfile)
 
     def test_parse_config(self):

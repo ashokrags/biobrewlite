@@ -67,7 +67,8 @@ class BaseTask:
         # print kwargs.get('outfiletarget')
         # out.copy(kwargs.get('outfiletarget'))
         # subprocess.call(' '.join(['ssh ', host+server] ))
-        subprocess.call(' '.join(['scp ', kwargs.get('outfilesource'), kwargs.get('outfiletarget')]), shell=True)
+        if host != 'localhost':
+            subprocess.call(' '.join(['scp ', kwargs.get('outfilesource'), kwargs.get('outfiletarget')]), shell=True)
         # print "\n **** SAGA: copy Done ***** \n"
         # out.close()
         js.close()

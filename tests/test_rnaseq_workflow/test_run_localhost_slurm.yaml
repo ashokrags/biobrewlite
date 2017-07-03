@@ -1,7 +1,7 @@
 bioproject: Project_test_localhost
 experiment: rnaseq_pilot
 sample_manifest:
-  fastq_file: /home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_manifest_min.csv
+  fastq_file: sampl_manifest_min.csv
   metadata:
 run_parms:
   conda_command: source activate cbc_conda_test

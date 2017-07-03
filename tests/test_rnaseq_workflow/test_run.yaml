@@ -21,7 +21,7 @@ workflow_sequence:
       mem: 40000
       ncpus: 8
       time: 600
-  qualimap-rnaseq: default
+  qualimap_rnaseq: default
 qc_checkpoints:
   fastqc_qc: default
   align_qc: default
