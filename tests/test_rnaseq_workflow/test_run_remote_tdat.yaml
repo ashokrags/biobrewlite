@@ -9,7 +9,7 @@ run_parms:
   log_dir: logs
   paired_end: True
   local_targets: True
-  luigi_local_path: /home/aragaven/scratch/test_workflow
+  luigi_local_path: /home/aragaven/scratch/test_workflow_lapierre_pe
   db: sqlite
   db_loc: ':memory:'
   saga_host: ssh.ccv.brown.edu
