@@ -188,7 +188,7 @@ class BaseWrapper:
             cmd.append('-v')
         # Run the command.
 
-        self.env['PATH'] = self.conda_command.split()[2] + self.env['PATH']
+        self.env['PATH'] = self.conda_command.split()[2] + ":" + self.env['PATH']
         print "\n ***** print PATH ***** \n"
         print self.env['PATH']
         try:
