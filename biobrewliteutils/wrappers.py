@@ -278,7 +278,7 @@ class FastQC(BaseWrapper):
             kwargs['target'] = hashlib.sha224(input + '_2_fastqc.zip').hexdigest() + ".txt"
         self.init(name, **kwargs)
         # self.luigi_source = "None"
-        self.version('-v')
+        # self.version('-v')
         self.add_threading('-t')
         self.args += [' -o ' + self.qc_dir]
         self.args += args
