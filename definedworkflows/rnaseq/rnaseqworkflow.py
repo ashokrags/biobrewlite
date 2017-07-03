@@ -28,8 +28,9 @@ class BaseTask:
 
         self.jobparms['out'] = os.path.join(self.parms.log_dir, self.name + "_mysagajob.stdout")
         self.jobparms['error'] = os.path.join(self.parms.log_dir, self.name + "_mysagajob.stderr")
-        self.jobparms['outfilesource'] = 'ssh.ccv.brown.edu:' + self.parms.luigi_target
-        self.jobparms['outfiletarget'] = '' + os.path.dirname(self.parms.luigi_local_target) + "/"
+        if self.parms.saga_host != 'localhost':
+            self.jobparms['outfilesource'] = 'ssh.ccv.brown.edu:' + self.parms.luigi_target
+            self.jobparms['outfiletarget'] = '' + os.path.dirname(self.parms.luigi_local_target) + "/"
         print self.jobparms
         return
 

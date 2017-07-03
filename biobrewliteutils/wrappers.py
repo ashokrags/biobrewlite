@@ -100,7 +100,6 @@ class BaseWrapper:
             self.luigi_local_target = os.path.join(
                 kwargs.get('luigi_local_path', "/Users/aragaven/scratch/test_workflow"),
                                                kwargs.get('target',"None"))
-
         self.stdout = kwargs.get('stdout')
         self.stdout_append = kwargs.get('stdout_append')
         # self.pipe = kwargs.get('pipe')
