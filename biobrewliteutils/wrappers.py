@@ -491,6 +491,42 @@ class QualiMapRnaSeq(BaseWrapper):
         return
 
 
+class SalmonCounts(BaseWrapper):
+    """
+    A wrapper for generating salmon counts
+
+    """
+
+    cmd = ''
+    args = []
+
+    def __init__(self, name, input, *args, **kwargs):
+        self.input = input
+        kwargs['target'] = hashlib.sha224(input + '.qualimapReport.html').hexdigest() + ".txt"
+        name = ' '.join(name.split('_'))
+        self.init(name, **kwargs)
+
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+            if 'mem' in kwargs.get('add_job_parms').keys():
+                self.args += [' --java-mem-size=' + str(kwargs.get('add_job_parms')['mem']) + 'M']
+        else:
+            self.job_parms.update({'mem': 10000, 'time': 80, 'ncpus': 8})
+            self.args += [' --java-mem-size=10000M']
+        # "-bam /gpfs/scratch/aragaven/lapierre_test_workflow/samp_S14.dup.srtd.bam " \
+        # "-gtf /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf " \
+        # "-outdir /gpfs/scratch/aragaven/test_workflow/align_qc/S14"
+        gtf = kwargs.get('gtf_file')
+        self.args += [" -bam " + os.path.join(kwargs.get('align_dir'), input + ".dup.srtd.bam"),
+                      " -gtf " + gtf,
+                      " -outdir " + os.path.join(kwargs.get('cwd'), "qc", input)]
+        self.args += args
+        rename_results = ' '.join([" cp ", os.path.join(kwargs.get('qc_dir'), input, "qualimapReport.html "),
+                                   os.path.join(kwargs.get('qc_dir'), input, input + "_qualimapReport.html ")])
+        self.setup_run(add_command=rename_results)
+        return
+
+
 class BedtoolsCounts(BaseWrapper):
     """
     A wrapper for FeatureCounts

@@ -18,8 +18,8 @@ class BaseTask:
 
         # self.jobparms['command'] +='source activate cbc_conda\n'
         self.jobparms['command'] += 'srun '
-        self.jobparms['command'] += self.parms.run_command + "\n"
-        self.jobparms['command'] += "srun --cpus-per-task=1 --time=1 echo 'DONE' > " + self.parms.luigi_target
+        self.jobparms['command'] += self.parms.run_command + " && "
+        self.jobparms['command'] += " echo 'DONE' > " + self.parms.luigi_target
 
         prog_name = self.parms.name.replace(" ", "_")
         self.name = self.parms.input + "_" + prog_name
