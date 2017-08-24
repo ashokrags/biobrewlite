@@ -1,6 +1,17 @@
-bioproject: Project_test_localhost
-experiment: rnaseq_pilot
+bioproject: Project_test_localhost # Project Name  Required
+experiment: rnaseq_pilot # Experiment type  Required
 sample_manifest:
+# This section outlines how the sample information is linked to the raw data. The Sample information should have two parts
+#   a) A link of sample ids to the raw fastqs
+#   b)  An optional metadata associated with each sample Id
+# Currently there are two options:
+#   1) You can either specify an acceptable SRA ID using the sra_id slot, which will automatically populate the metadata
+#   2) You can provide upto two csv files, the first of which has two columns 'SampleID, path_to_fastq', used in
+#      the fastq_file slot and the second optional file  which has multiple columns 'SampleID, col1,,,coln' used in the
+#      optional metadata slot.
+#  At least one of the sra_id or fastq_file slots must be present and the metadata slot is optional if using the fastq_file slot
+#  The metadate slot will be ignored if using the sra_id slot
+
   fastq_file: sampl_manifest_min.csv
   metadata:
 run_parms:

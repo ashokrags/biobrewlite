@@ -83,8 +83,8 @@ class TestRnaSeqFlowLocalHostSE(TestCase):
         for k, v in self.rw1.__dict__.iteritems():
             print k, v
 
-    def test_parse_sample_info(self):
-        self.rw1.parse_sample_info()
+    def test_parse_sample_info_from_file(self):
+        self.rw1.parse_sample_info_from_file()
         print "\n***** Printing Sample Info ******\n"
         for k, v in self.rw1.sample_fastq.iteritems():
             print k, v
@@ -106,7 +106,7 @@ class TestRnaSeqFlowLocalHostSE(TestCase):
     # def test_symlink_fastqs(self):
     #     #self.rw1.sample_fastq = {'sampN2': ['/gpfs/scratch/aragaven/test_workflow/N1-BC1_AACCAG_R1.fastq.gz'],
     #      #                        'sampN3': ['/gpfs/scratch/aragaven/test_workflow/N3-BC3_AGTGAG_R1.fastq.gz']}
-    #     self.rw1.parse_sample_info()
+            #     self.rw1.parse_sample_info_from_file()
     #     self.rw1.symlink_fastqs()
 
     # def test_chain_commands_se(self):
@@ -121,15 +121,15 @@ class TestRnaSeqFlowLocalHostSE(TestCase):
     #     self.rw1.chain_commands()
 
 
-    def test_run_chain_commands(self):
-        self.rw1.parse_prog_info()
-        self.rw1.test_paths()
-        self.rw1.symlink_fastqs()
-        self.rw1.chain_commands()
-        luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=True,
-                    workers=len(self.rw1.sample_fastq_work.keys()), lock_size=1)
-        # # luigi.build([TaskFlow(tasks=self.rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
-        # luigi.build(self.rw1.allTasks, local_scheduler=False, workers=3, lock_size=3)
+            # def test_run_chain_commands(self):
+            #     self.rw1.parse_prog_info()
+            #     self.rw1.test_paths()
+            #     self.rw1.symlink_fastqs()
+            #     self.rw1.chain_commands()
+            #     luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=True,
+            #                 workers=len(self.rw1.sample_fastq_work.keys()), lock_size=1)
+            #     # # luigi.build([TaskFlow(tasks=self.rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
+            #     # luigi.build(self.rw1.allTasks, local_scheduler=False, workers=3, lock_size=3)
 
 
 if __name__ == '__main__':

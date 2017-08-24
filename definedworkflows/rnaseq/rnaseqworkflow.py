@@ -13,12 +13,12 @@ class BaseTask:
         self.jobparms['workdir'] = self.parms.cwd
 
         ## Hack to get the command to work for now
-        self.jobparms['command'] = '#SBATCH -vvvv\n echo $PATH\n'
+        self.jobparms['command'] = '#SBATCH -vvvv\nset -e\necho $PATH\n'
         self.jobparms['command'] += self.parms.conda_command + "\n"
 
         # self.jobparms['command'] +='source activate cbc_conda\n'
         self.jobparms['command'] += 'srun '
-        self.jobparms['command'] += self.parms.run_command + " && "
+        self.jobparms['command'] += self.parms.run_command + "\n"
         self.jobparms['command'] += " echo 'DONE' > " + self.parms.luigi_target
 
         prog_name = self.parms.name.replace(" ", "_")
@@ -202,13 +202,17 @@ class RnaSeqFlow(BaseWorkflow):
         if 'conda_command' not in self.run_parms.keys():
             self.run_parms['conda_command'] = 'source activate /gpfs/runtime/opt/conda/envs/cbc_conda_test/bin'
         self.paired_end = False
-        self.parse_sample_info()
+        if 'fastq_file' in self.run_parms.keys():
+            # Need to check and make sure both fastq_file and sra don't exist
+            self.parse_sample_info_from_file()
+        elif 'sra' in self.run_parms.keys():
+            self.parse_sample_info_from_sra()
         self.setup_paths()
         self.set_base_kwargs()
         self.create_catalog()
         return
 
-    def parse_sample_info(self):
+    def parse_sample_info_from_file(self):
         """
         Read in the sample attributes from file as a dictionary with
         the sample id as the key

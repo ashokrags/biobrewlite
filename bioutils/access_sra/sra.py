@@ -163,4 +163,6 @@ if __name__ == '__main__':
     print len(records)
 
     for k, v in records.iteritems():
+        print k, "\n"
+        print v, "\n"
         print ftp_url(k), "\n"
