@@ -19,10 +19,10 @@ sample_manifest:
   fastq_file: sampl_manifest_min_se_mus.csv
   metadata:
 run_parms:
-  conda_command: source activate cbc_conda
+  conda_command: source activate /gpfs/runtime/opt/conda/envs/cbc_conda
   work_dir: /gpfs/scratch/aragaven/test_workflow_local_se_mus
   log_dir: logs
-  paired_end: True
+  paired_end: False
   #local_targets: False
   luigi_local_path: /Users/aragaven/scratch
   #luigi_local_path: /home/aragaven/scratch/test_workflow
