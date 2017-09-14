@@ -124,7 +124,7 @@ class TestQualimap(unittest.TestCase):
 
 class TestSalmon(unittest.TestCase):
     def setUp(self):
-        self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_localhost_slurm.yaml"
+        self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_localhost_slurm_se_mus.yaml"
         self.rw1 = rsw(self.parmsfile)
         self.rw1.parse_prog_info()
         self.wrapper_name = 'salmon'
