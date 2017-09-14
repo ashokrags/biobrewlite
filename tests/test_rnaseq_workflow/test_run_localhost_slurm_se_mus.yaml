@@ -19,8 +19,8 @@ sample_manifest:
   fastq_file: sampl_manifest_min_se_mus.csv
   metadata:
 run_parms:
-  conda_command: source activate /Users/aragaven/anaconda2/bin
-  work_dir: /Users/aragaven/scratch/test_workflow_local_se_mus
+  conda_command: source activate cbc_conda
+  work_dir: /gpfs/scratch/aragaven/test_workflow_local_se_mus
   log_dir: logs
   paired_end: True
   #local_targets: False
