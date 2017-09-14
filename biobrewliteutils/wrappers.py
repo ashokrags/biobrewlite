@@ -576,7 +576,7 @@ class SalmonCounts(BaseWrapper):
         self.args += ["-l A"]
 
         if not self.paired_end:
-            self.args += ["-r", os.path.join(kwargs.get('fastq_dir'), input + "fq.gz")]
+            self.args += ["-r", os.path.join(kwargs.get('fastq_dir'), input + ".fq.gz")]
         else:
             self.args += ["-1", os.path.join(kwargs.get('fastq_dir'), input + "_1.fq.gz"),
                           "-2", os.path.join(kwargs.get('fastq_dir'), input + "_1.fq.gz")]
