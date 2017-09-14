@@ -11,22 +11,27 @@ sample_manifest:
 #      optional metadata slot.
 #  At least one of the sra_id or fastq_file slots must be present and the metadata slot is optional if using the fastq_file slot
 #  The metadate slot will be ignored if using the sra_id slot
-
-  fastq_file: sampl_manifest_min.csv
+  sra:
+    id: SRS2340773
+    #id: SRS2432454
+    #id: SRP069872
+    entrez_email: ashok.ragavendran@gmail.com
+  #fastq_file: sampl_manifest_min_se_mus.csv
   metadata:
 run_parms:
-  conda_command: source activate /gpfs/runtime/opt/conda/envs/cbc_conda_test
-  work_dir: /gpfs/scratch/aragaven/test_workflow
+  conda_command: source activate /Users/aragaven/anaconda2/bin
+  work_dir: /Users/aragaven/scratch/test_workflow
   log_dir: logs
-  paired_end: False
-  local_targets: False
-  luigi_local_path: /home/aragaven/scratch/test_workflow
+  paired_end: True
+  #local_targets: False
+  luigi_local_path: /Users/aragaven/scratch
+  #luigi_local_path: /home/aragaven/scratch/test_workflow
   db: sqlite
   db_loc: ':memory:'
   saga_host: localhost
-  ssh_user: aragaven
-  saga_scheduler: slurm
-  gtf_file: /gpfs/data/cbc/cbcollab/ref_tools/Ensembl_mus_GRCm38.p5_rel89/Mus_musculus.GRCm38.89.gtf
+  #ssh_user: aragaven
+  #saga_scheduler: slurm
+  #gtf_file: /gpfs/data/cbc/cbcollab/ref_tools/Ensembl_mus_GRCm38.p5_rel89/Mus_musculus.GRCm38.89.gtf
 workflow_sequence:
   fastqc: default
   gsnap:
@@ -38,3 +43,7 @@ workflow_sequence:
       mem: 40000
       time: 60
   qualimap_rnaseq: default
+  salmon:
+    options:
+      -g: /gpfs/data/cbc/cbcollab/ref_tools/Ensembl_mus_GRCm38.p5_rel89/Mus_musculus.GRCm38.89.gtf
+      -i: /gpfs/data/cbc/cbcollab/cbc_ref/salmon_index/Mus_musculus.GRCm38.cdna.all_transcripts_sal_index

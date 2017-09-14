@@ -1,7 +1,7 @@
 bioproject: Project_nm_1
 experiment: rnaseq_pilot
 sample_manifest:
-  fastq_file: sampl_manifest_min.csv
+  fastq_file: /Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_manifest_min_se_mus.csv
   metadata:
 run_parms:
   work_dir: /gpfs/scratch/aragaven/test_workflow
@@ -22,7 +22,3 @@ workflow_sequence:
       ncpus: 8
       time: 600
   qualimap_rnaseq: default
-qc_checkpoints:
-  fastqc_qc: default
-  align_qc: default
-  counts_qc: default

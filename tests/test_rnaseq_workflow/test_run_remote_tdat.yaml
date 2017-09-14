@@ -1,7 +1,7 @@
 bioproject: Project_ll_1
 experiment: rnaseq_pilot
 sample_manifest:
-  fastq_file: /home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_min_remote.csv
+  fastq_file: /home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sample_celegans_pe_remote.csv
   metadata:
 run_parms:
   work_dir: /gpfs/scratch/aragaven/lapierre_test_pe_workflow

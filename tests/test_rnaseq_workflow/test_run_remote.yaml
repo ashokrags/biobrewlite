@@ -1,10 +1,10 @@
 bioproject: Project_nm_1
 experiment: rnaseq_pilot
 sample_manifest:
-  fastq_file: /Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_manifest_min.csv
+  fastq_file: /Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/sampl_manifest_min_se_mus.csv
   metadata:
 run_parms:
-  conda_command: source activate cbc_conda_test
+  conda_command: source activate cbc_conda
   work_dir: /gpfs/scratch/aragaven/namrata_testdat
   log_dir: logs
   paired_end: False

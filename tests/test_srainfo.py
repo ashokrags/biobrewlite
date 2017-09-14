@@ -1,9 +1,11 @@
 import unittest, os
 from unittest import TestCase
-from bioutils.access_sra.sra_info import xml2df
+from bioutils.access_sra.sra import SraUtils as SU
+from bioutils.access_sra.sra import Sra_Element as SE
 
 
-class TestSraInfo(TestCase, FastqcParser):
+class TestSra(TestCase, SU):
+
     def setUp(self):
         print os.getcwd()
         self.infile = "./tests/test_fastqc.zip"
