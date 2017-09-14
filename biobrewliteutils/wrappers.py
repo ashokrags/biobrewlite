@@ -561,8 +561,8 @@ class SalmonCounts(BaseWrapper):
         self.input = input
 
         kwargs['target'] = input + '.salmoncounts.' + hashlib.sha224(input + '.salmoncounts').hexdigest() + ".txt"
-
-        self.init(name, **kwargs)
+        new_name = name + " quant"
+        self.init(new_name, **kwargs)
 
         # update job parameters if needed
         if kwargs.get('job_parms_type') != 'default':
@@ -571,7 +571,6 @@ class SalmonCounts(BaseWrapper):
         else:
             self.job_parms.update({'mem': 10000, 'time': 80, 'ncpus': 8})
 
-        salmon_index = ''
         gtf = kwargs.get('gtf_file')
         self.args += args
         self.args += ["-l A"]
@@ -584,7 +583,6 @@ class SalmonCounts(BaseWrapper):
 
         self.args += [" -o " + os.path.join(kwargs.get('work_dir'), kwargs.get('expression_dir'),
                                             input + "_salmon_counts")]
-
         rename_results = ' '.join(
             [" cp ", os.path.join(kwargs.get('expression_dir'), input + "_salmon_counts", "quant.genes.sf"),
              os.path.join(kwargs.get('expression_dir'), input + "_salmon_quant.genes.txt")])

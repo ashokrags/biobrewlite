@@ -15,6 +15,9 @@ sample_manifest:
 #    id: SRS2340773
 #    #id: SRS2432454
 #    #id: SRP069872
+#
+#    Test ids: Mus: SE: SRS2506568 PE: SRS2496962
+#
 #    entrez_email: ashok.ragavendran@gmail.com
   fastq_file: sampl_manifest_min_se_mus.csv
   metadata:
@@ -43,7 +46,7 @@ workflow_sequence:
       mem: 40000
       time: 60
   qualimap_rnaseq: default
-#  salmon:
-#    options:
-#      -g: /gpfs/data/cbc/cbcollab/ref_tools/Ensembl_mus_GRCm38.p5_rel89/Mus_musculus.GRCm38.89.gtf
-#      -i: /gpfs/data/cbc/cbcollab/cbc_ref/salmon_index/Mus_musculus.GRCm38.cdna.all_transcripts_sal_index
+  salmon_quant:
+    options:
+      -g: /gpfs/data/cbc/cbcollab/ref_tools/Ensembl_mus_GRCm38.p5_rel89/Mus_musculus.GRCm38.89.gtf
+      -i: /gpfs/data/cbc/cbcollab/cbc_ref/salmon_index/Mus_musculus.GRCm38.cdna.all_transcripts_sal_index

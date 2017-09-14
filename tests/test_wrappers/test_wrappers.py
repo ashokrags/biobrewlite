@@ -124,7 +124,7 @@ class TestQualimap(unittest.TestCase):
 
 class TestSalmon(unittest.TestCase):
     def setUp(self):
-        self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_localhost_slurm_se_mus.yaml"
+        self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run.yaml"
         self.rw1 = rsw(self.parmsfile)
         self.rw1.parse_prog_info()
         self.wrapper_name = 'salmon'
@@ -145,8 +145,8 @@ class TestSalmon(unittest.TestCase):
 if __name__ == '__main__':
     # unittest.main()
     suite = unittest.TestSuite()
-    # suite.addTest(TestSalmon("test_salmon_counts_wrapper"))
+    suite.addTest(TestSalmon("test_salmon_counts_wrapper"))
     # suite.addTest(TestSamMarkDup("test_sammarkdup_wrapper"))
-    suite.addTest(TestQualimap("test_qualimap_wrapper"))
+    # suite.addTest(TestQualimap("test_qualimap_wrapper"))
     runner = unittest.TextTestRunner()
     runner.run(suite)
