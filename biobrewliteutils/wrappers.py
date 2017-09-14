@@ -520,7 +520,8 @@ class QualiMapRnaSeq(BaseWrapper):
 
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
-        kwargs['target'] = hashlib.sha224(input + '.qualimapReport.html').hexdigest() + ".txt"
+        kwargs['target'] = input + '.qualimapReport.' + hashlib.sha224(
+            input + '.qualimapReport.html').hexdigest() + ".txt"
         new_name = name.split('_')[0]
         self.init(new_name, **kwargs)
 
@@ -559,7 +560,7 @@ class SalmonCounts(BaseWrapper):
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
 
-        kwargs['target'] = hashlib.sha224(input + '.salmoncounts').hexdigest() + ".txt"
+        kwargs['target'] = input + '.salmoncounts.' + hashlib.sha224(input + '.salmoncounts').hexdigest() + ".txt"
 
         self.init(name, **kwargs)
 

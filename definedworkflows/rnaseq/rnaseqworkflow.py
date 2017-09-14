@@ -556,7 +556,8 @@ class RnaSeqFlow(BaseWorkflow):
         if self.run_parms['saga_host'] != "localhost":
             js = saga.job.Service("ssh://" + self.run_parms['saga_host'], session=session)
         elif self.run_parms['saga_host'] == 'localhost' and 'saga_scheduler' in self.run_parms.keys():
-            js = saga.job.Service(self.run_parms['saga_scheduler'] + "://" + self.run_parms['saga_host'])
+            # js = saga.job.Service(self.run_parms['saga_scheduler'] + "://" + self.run_parms['saga_host'])
+            js = saga.job.Service("fork://" + self.run_parms['saga_host'])
         elif self.run_parms['saga_host'] == 'localhost' and 'saga_scheduler' not in self.run_parms.keys():
             self.run_parms['saga_scheduler'] = "fork"
             js = saga.job.Service("fork://" + self.run_parms['saga_host'])
