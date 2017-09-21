@@ -23,6 +23,7 @@ sample_manifest:
 #  metadata:
   sra:
     id: SRS2496962
+    entrez_email: ashok.ragavendran@gmail.com
 run_parms:
   conda_command: source activate /gpfs/runtime/opt/conda/envs/cbc_conda
   work_dir: /gpfs/scratch/aragaven/test_workflow_sra_local_pe_mus
