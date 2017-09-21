@@ -302,15 +302,15 @@ if __name__ == '__main__':
 
     ## Runs  only a specific class for PE c elegans locally on CCV
 
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestRnaSeqFlowLocalSlurmPE)
-    runner = unittest.TextTestRunner()
-    runner.run(suite)
-
-    ## Runs  only a specific class for SE mus from SRA locally on CCV
-    #
-    # suite = unittest.TestLoader().loadTestsFromTestCase(TestRnaSeqFlowSRALocalSlurmSE)
+    # suite = unittest.TestLoader().loadTestsFromTestCase(TestRnaSeqFlowLocalSlurmPE)
     # runner = unittest.TextTestRunner()
     # runner.run(suite)
+
+    ## Runs  only a specific class for SE mus from SRA locally on CCV
+
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestRnaSeqFlowSRALocalSlurmSE)
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
 
     ## Runs  only a specific class for SE mus from SRA locally on CCV
     #
