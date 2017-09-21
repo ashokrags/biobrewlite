@@ -579,7 +579,7 @@ class SalmonCounts(BaseWrapper):
             self.args += ["-r", os.path.join(kwargs.get('fastq_dir'), input + ".fq.gz")]
         else:
             self.args += ["-1", os.path.join(kwargs.get('fastq_dir'), input + "_1.fq.gz"),
-                          "-2", os.path.join(kwargs.get('fastq_dir'), input + "_1.fq.gz")]
+                          "-2", os.path.join(kwargs.get('fastq_dir'), input + "_2.fq.gz")]
 
         self.args += [" -o " + os.path.join(kwargs.get('work_dir'), kwargs.get('expression_dir'),
                                             input + "_salmon_counts")]
