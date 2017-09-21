@@ -227,7 +227,8 @@ class TestRnaSeqFlowSRALocalSlurmSE(TestCase):
     def test_run_chain_commands(self):
         self.rw1.parse_prog_info()
         self.rw1.test_paths()
-        self.rw1.symlink_fastqs()
+        self.rw1.download_sra_cmds()
+        # self.rw1.symlink_fastqs()
         # self.rw1.set_base_kwargs()
         self.rw1.chain_commands()
         luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=True,
@@ -259,7 +260,8 @@ class TestRnaSeqFlowSRALocalSlurmPE(TestCase):
     def test_run_chain_commands(self):
         self.rw1.parse_prog_info()
         self.rw1.test_paths()
-        self.rw1.symlink_fastqs()
+        self.rw1.download_sra_cmds()
+        #self.rw1.symlink_fastqs()
         # self.rw1.set_base_kwargs()
         self.rw1.chain_commands()
         luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=True,

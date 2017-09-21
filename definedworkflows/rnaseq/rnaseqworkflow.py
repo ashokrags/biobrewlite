@@ -204,13 +204,14 @@ class RnaSeqFlow(BaseWorkflow):
         if 'conda_command' not in self.run_parms.keys():
             self.run_parms['conda_command'] = 'source activate /gpfs/runtime/opt/conda/envs/cbc_conda_test/bin'
         self.paired_end = False
+        self.setup_paths()
+        self.set_base_kwargs()
         if 'fastq_file' in self.sample_manifest.keys():
             # Need to check and make sure both fastq_file and sra don't exist
             self.parse_sample_info_from_file()
         elif 'sra' in self.sample_manifest.keys():
             self.parse_sample_info_from_sra()
-        self.setup_paths()
-        self.set_base_kwargs()
+
         self.create_catalog()
         return
 
