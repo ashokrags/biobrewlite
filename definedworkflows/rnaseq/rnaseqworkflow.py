@@ -625,7 +625,8 @@ class RnaSeqFlow(BaseWorkflow):
             for key in self.progs.keys():
 
                 if key == 'gsnap':
-
+                    # update job parms
+                    new_base_kwargs = self.update_job_parms(key)
                     # Add additional samtools processing steps to GSNAP output
 
                     tmp_prog = self.prog_wrappers['bammarkduplicates2']('bammarkduplicates2', samp,
@@ -646,7 +647,7 @@ class RnaSeqFlow(BaseWorkflow):
 
                     tmp_prog = self.prog_wrappers['samsort']('samtools', samp,
                                                              stdout=os.path.join(self.log_dir, samp + '_bamsrt.log'),
-                                                             **dict(self.base_kwargs)
+                                                             **dict(new_base_kwargs)
                                                              )
                     print tmp_prog.run_command
 
@@ -670,7 +671,6 @@ class RnaSeqFlow(BaseWorkflow):
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
-                    new_base_kwargs = self.update_job_parms(key)
 
                     tmp_prog = self.prog_wrappers[key](key, samp, *self.progs[key],
                                                        stdout=os.path.join(self.align_dir, samp + '.sam'),

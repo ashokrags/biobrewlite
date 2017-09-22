@@ -454,7 +454,7 @@ class SamToolsSort(BaseWrapper):
             if 'ncpus' in kwargs.get('add_job_parms').keys():
                 self.args += [' -t ' + str(kwargs.get('add_job_parms')['ncpus'])]
         else:
-            self.job_parms.update({'mem': 1000, 'time': 80, 'ncpus': 1})
+            self.job_parms.update({'mem': 4000, 'time': 80, 'ncpus': 1})
 
         self.args = ["-o", os.path.join(self.align_dir, input + ".srtd.bam")]
         self.args += args
