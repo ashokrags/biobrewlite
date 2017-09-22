@@ -47,7 +47,7 @@ workflow_sequence:
     job_params:
       ncpus: 16
       mem: 40000
-      time: 60
+      time: 600
   qualimap_rnaseq: default
   salmon:
     options:
