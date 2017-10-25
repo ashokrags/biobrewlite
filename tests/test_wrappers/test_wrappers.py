@@ -142,11 +142,31 @@ class TestSalmon(unittest.TestCase):
         #     print k + ": " + str(v) +  "\n"
 
 
+class TestHtSeq(unittest.TestCase):
+    def setUp(self):
+        self.parmsfile = "/Users/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run.yaml"
+        self.rw1 = rsw(self.parmsfile)
+        self.rw1.parse_prog_info()
+        self.wrapper_name = 'htseq-count'
+        self.htseq_test = wr.HtSeqCounts(self.wrapper_name, "test_samp",
+                                         stdout=os.path.join(self.rw1.run_parms['work_dir'],
+                                                             self.rw1.run_parms['log_dir'],
+                                                             'test_samp.log'),
+                                         **dict(self.rw1.base_kwargs))
+
+    def test_htseq_counts_wrapper(self):
+        print "\n***** Testing Htseq_wrapper command *****\n"
+        print self.htseq_test.run_command
+
+
+
 if __name__ == '__main__':
     # unittest.main()
     suite = unittest.TestSuite()
-    suite.addTest(TestSalmon("test_salmon_counts_wrapper"))
+    suite.addTest(TestHtSeq("test_htseq_counts_wrapper"))
+    # suite.addTest(TestSalmon("test_salmon_counts_wrapper"))
     # suite.addTest(TestSamMarkDup("test_sammarkdup_wrapper"))
     # suite.addTest(TestQualimap("test_qualimap_wrapper"))
+    #suite.addTest(TestFastqc("test_fastqc_wrapper"))
     runner = unittest.TextTestRunner()
     runner.run(suite)

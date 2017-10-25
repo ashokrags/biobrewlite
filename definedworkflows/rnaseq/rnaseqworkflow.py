@@ -144,12 +144,14 @@ class BaseWorkflow:
                               'gsnap': wr.Gsnap,
                               'fastqc': wr.FastQC,
                               'qualimap_rnaseq': wr.QualiMapRnaSeq,
-                              'samtomapped': wr.SamToMappedBam,
-                              'samtounmapped': wr.SamToUnmappedBam,
+                              'samtobam': wr.SamToBam,
+                              'bamtomapped': wr.BamToMappedBam,
+                              'bamtounmapped': wr.BamToUnmappedBam,
                               'samindex': wr.SamIndex,
                               'samsort': wr.SamToolsSort,
                               'bammarkduplicates2': wr.BiobambamMarkDup,
-                              'salmon': wr.SalmonCounts
+                              'salmon': wr.SalmonCounts,
+                              'htseq-count': wr.HtSeqCounts
                               }
         self.job_params = {'work_dir': self.run_parms['work_dir'],
                            'time': 80,
@@ -259,8 +261,10 @@ class RnaSeqFlow(BaseWorkflow):
             print k, v
             if isinstance(v, dict):
                 # Add the specific program options
+                # Need to modify to dict so that default values can be updated
                 if 'options' in v.keys():
                     for k1, v1 in v['options'].iteritems():
+                        # Should we test for flag options?
                         self.progs[k].append("%s %s" % (k1, v1))
                 else:
                     self.progs[k].append('')
@@ -653,20 +657,29 @@ class RnaSeqFlow(BaseWorkflow):
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
-                    tmp_prog = self.prog_wrappers['samtomapped']('samtools', samp,
+                    tmp_prog = self.prog_wrappers['bamtomapped']('samtools', samp,
                                                                  stdout=os.path.join(self.log_dir,
-                                                                                     samp + '_samtobam.log'),
+                                                                                     samp + '_bamtomappedbam.log'),
                                                                  **dict(self.base_kwargs)
                                                                  )
                     print tmp_prog.run_command
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
 
-                    tmp_prog = self.prog_wrappers['samtounmapped']('samtools', samp,
+                    tmp_prog = self.prog_wrappers['bamtounmapped']('samtools', samp,
                                                                    stdout=os.path.join(self.log_dir,
-                                                                                       samp + '_samtounmappedbam.log'),
+                                                                                       samp + '_bamtounmappedbam.log'),
                                                                    **dict(self.base_kwargs)
                                                                    )
+                    print tmp_prog.run_command
+
+                    samp_progs.append(jsonpickle.encode(tmp_prog))
+
+                    tmp_prog = self.prog_wrappers['samtobam']('samtools', samp,
+                                                              stdout=os.path.join(self.log_dir,
+                                                                                  samp + '_samtobam.log'),
+                                                              **dict(self.base_kwargs)
+                                                              )
                     print tmp_prog.run_command
 
                     samp_progs.append(jsonpickle.encode(tmp_prog))
@@ -728,7 +741,7 @@ class RnaSeqFlow(BaseWorkflow):
         return new_base_kwargs
 
 
-if __name__ == '__main__':
+def main():
     # parmsfile = "/home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_tdat.yaml"
     parmsfile = sys.argv[1]
     rw1 = RnaSeqFlow(parmsfile)
@@ -762,3 +775,7 @@ if __name__ == '__main__':
                 workers=len(rw1.sample_fastq_work.keys()), lock_size=1)
     # luigi.build([TaskFlow(tasks=rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
     # luigi.build(self.rw1.allTasks, local_scheduler=False, workers=3, lock_size=3)
+
+
+if __name__ == '__main__':
+    main()

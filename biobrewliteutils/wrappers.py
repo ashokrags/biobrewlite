@@ -102,6 +102,7 @@ class BaseWrapper(object):
                 kwargs.get('luigi_local_path', "/Users/aragaven/scratch/test_workflow"),
                                                kwargs.get('target',"None"))
         self.stdout = kwargs.get('stdout')
+        self.stderr = kwargs.get('stderr')
         self.stdout_append = kwargs.get('stdout_append')
         # self.pipe = kwargs.get('pipe')
         self.env = os.environ.copy()
@@ -241,8 +242,9 @@ class BaseWrapper(object):
         """
 
         cmd = self.cmd
-
         stderr = os.path.join(self.log_dir, '_'.join([self.input, self.name, 'err.log']))
+        if self.stderr is not None:
+            stderr = self.stderr
         if len(self.name.split()) > 1:
             stderr = os.path.join(self.log_dir, '_'.join([self.input, '_'.join(self.name.split()), 'err.log']))
         self.args.append('2>>' + stderr)
@@ -392,7 +394,30 @@ class SamTools(BaseWrapper):
         return
 
 
-class SamToMappedBam(BaseWrapper):
+class SamToBam(BaseWrapper):
+    '''
+    Wrapper class to filter sam and produce a bam with only mapped reads
+    '''
+
+    def __init__(self, name, input, *args, **kwargs):
+        self.input = input
+        kwargs['target'] = hashlib.sha224(input + '.bam').hexdigest() + ".txt"
+        new_name = name + " view"
+        self.init(new_name, **kwargs)
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+        else:
+            self.job_parms.update({'mem': 2000, 'time': 80, 'ncpus': 1})
+
+        self.args = ["-Sbh ", "-o", os.path.join(self.align_dir, input + ".bam")]
+        self.args += args
+        self.args.append(os.path.join(self.align_dir, input + ".sam"))
+        self.setup_run()
+        self.name = self.name + " fromsam"
+        return
+
+
+class BamToMappedBam(BaseWrapper):
     '''
     Wrapper class to filter sam and produce a bam with only mapped reads
     '''
@@ -406,14 +431,15 @@ class SamToMappedBam(BaseWrapper):
         else:
             self.job_parms.update({'mem': 2000, 'time': 80, 'ncpus': 1})
 
-        self.args = ["-F 0x4", "-Sbh ", "-o", os.path.join(self.align_dir, input + ".bam")]
+        self.args = ["-F 0x4", "-bh ", "-o", os.path.join(self.align_dir, input + ".mapped.bam")]
         self.args += args
-        self.args.append(os.path.join(self.align_dir, input + ".sam"))
+        self.args.append(os.path.join(self.align_dir, input + ".bam"))
         self.setup_run()
         self.name = self.name + " mapped"
         return
 
-class SamToUnmappedBam(BaseWrapper):
+
+class BamToUnmappedBam(BaseWrapper):
     '''
     Wrapper class to filter sam and produce a bam with only unmapped reads
     '''
@@ -428,7 +454,7 @@ class SamToUnmappedBam(BaseWrapper):
         else:
             self.job_parms.update({'mem': 2000, 'time': 80, 'ncpus': 1})
 
-        self.args = ["-f 0x4", "-Sbh ", "-o", os.path.join(self.align_dir, input + ".unmapped.bam")]
+        self.args = ["-f 0x4", "-bh ", "-o", os.path.join(self.align_dir, input + ".unmapped.bam")]
         self.args += args
         self.args.append(os.path.join(self.align_dir, input + ".sam"))
         self.setup_run()
@@ -538,9 +564,9 @@ class QualiMapRnaSeq(BaseWrapper):
 
         gtf = kwargs.get('gtf_file')
         self.args += [name.split('_')[1],
-                      " -bam " + os.path.join(kwargs.get('align_dir'), input + ".dup.srtd.bam"),
-                     " -gtf " + gtf,
-                      " -outdir " + os.path.join(kwargs.get('work_dir'), "qc", input)]
+                      " -bam ", os.path.join(kwargs.get('align_dir'), input + ".dup.srtd.bam"),
+                      " -gtf ", gtf,
+                      " -outdir ", os.path.join(kwargs.get('work_dir'), "qc", input)]
         self.args += args
         rename_results = ' '.join([" cp ", os.path.join(kwargs.get('qc_dir'), input, "qualimapReport.html "),
                                    os.path.join(kwargs.get('qc_dir'), input, input + "_qualimapReport.html ")])
@@ -590,8 +616,44 @@ class SalmonCounts(BaseWrapper):
         return
 
 
+class HtSeqCounts(BaseWrapper):
+    """
+    A wrapper for generating counts from HTSeq
+
+    """
+
+    cmd = ''
+    args = []
+
+    def __init__(self, name, input, *args, **kwargs):
+        self.input = input
+
+        kwargs['target'] = input + '.htseqcounts.' + hashlib.sha224(input + '.htseqcounts').hexdigest() + ".txt"
+        new_name = name
+        kwargs['stderr'] = kwargs.get('stdout')
+        kwargs.update({'stdout': os.path.join(kwargs.get('work_dir'), kwargs.get('expression_dir'),
+                                              input + "_htseq_counts")})
+        self.init(new_name, **kwargs)
+        # update job parameters if needed
+        if kwargs.get('job_parms_type') != 'default':
+            self.job_parms.update(kwargs.get('add_job_parms'))
+        else:
+            self.job_parms.update({'mem': 10000, 'time': 80, 'ncpus': 2})
+
+        gtf = kwargs.get('gtf_file')
+        self.args += args
+        self.args += ["-f", "bam", "-r", "pos", "-a", "0", "-t", "exon", "-i", "gene_id", "--additional-attr=gene_name",
+                      "--nonunique=all", "--secondary-alignments=score"]
+        self.args += [os.path.join(kwargs.get('align_dir'), input + ".dup.srtd.bam"),
+                      gtf]
+
+        self.setup_run()
+        return
+
+
 class BedtoolsCounts(BaseWrapper):
-    """A wrapper for bedtools
+    """
+    A wrapper for bedtools to count RNAseq reads for Single End data
 
     """
 
