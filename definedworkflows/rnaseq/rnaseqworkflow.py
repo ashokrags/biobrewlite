@@ -742,6 +742,8 @@ class RnaSeqFlow(BaseWorkflow):
 
 
 def main():
+    print "success intall worked"
+    sys.exit(0)
     # parmsfile = "/home/aragaven/PycharmProjects/biobrewlite/tests/test_rnaseq_workflow/test_run_remote_tdat.yaml"
     parmsfile = sys.argv[1]
     rw1 = RnaSeqFlow(parmsfile)
