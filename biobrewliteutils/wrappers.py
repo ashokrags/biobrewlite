@@ -300,11 +300,11 @@ class FastQC(BaseWrapper):
 
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
-        kwargs['target'] = hashlib.sha224(input + '_fastqc.zip').hexdigest() + ".txt"
+        kwargs['target'] = input + '.fastqc.zip.' + hashlib.sha224(input + '.fastqc.zip').hexdigest() + ".txt"
 
         # only need second part as fastqc is run on each file sequentially in the same job
         if kwargs.get('paired_end'):
-            kwargs['target'] = hashlib.sha224(input + '_2_fastqc.zip').hexdigest() + ".txt"
+            kwargs['target'] = input + '.2.fastqc' + hashlib.sha224(input + '.2.fastqc.zip').hexdigest() + ".txt"
 
         self.init(name, **kwargs)
         # self.luigi_source = "None"
@@ -344,7 +344,7 @@ class Gsnap(BaseWrapper):
         self.input = input
 
         ## set the checkpoint target file
-        kwargs['target'] = hashlib.sha224(input + '.sam').hexdigest() + ".txt"
+        kwargs['target'] = input + '.sam.' + hashlib.sha224(input + '.sam').hexdigest() + ".txt"
 
         self.init(name, **kwargs)
 
@@ -401,7 +401,7 @@ class SamToBam(BaseWrapper):
 
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
-        kwargs['target'] = hashlib.sha224(input + '.bam').hexdigest() + ".txt"
+        kwargs['target'] = input + '.bam' + hashlib.sha224(input + '.bam').hexdigest() + ".txt"
         new_name = name + " view"
         self.init(new_name, **kwargs)
         if kwargs.get('job_parms_type') != 'default':
@@ -423,8 +423,9 @@ class BamToMappedBam(BaseWrapper):
     '''
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
-        kwargs['target'] = hashlib.sha224(input + '.bam').hexdigest() + ".txt"
+        kwargs['target'] = input + '.mapped.bam' + hashlib.sha224(input + '.mapped.bam').hexdigest() + ".txt"
         new_name = name + " view"
+
         self.init(new_name, **kwargs)
         if kwargs.get('job_parms_type') != 'default':
             self.job_parms.update(kwargs.get('add_job_parms'))
@@ -445,7 +446,7 @@ class BamToUnmappedBam(BaseWrapper):
     '''
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
-        kwargs['target'] = hashlib.sha224(input + '.unmapped.bam').hexdigest() + ".txt"
+        kwargs['target'] = input + '.unmapped.bam' + hashlib.sha224(input + '.unmapped.bam').hexdigest() + ".txt"
         new_name = name + " view"
         self.init(new_name, **kwargs)
 
@@ -469,7 +470,7 @@ class SamToolsSort(BaseWrapper):
 
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
-        kwargs['target'] = hashlib.sha224(input + '.srtd.bam').hexdigest() + ".txt"
+        kwargs['target'] = input + '.srtd.bam' + hashlib.sha224(input + '.srtd.bam').hexdigest() + ".txt"
         new_name = name + " sort"
         self.init(new_name, **kwargs)
 
@@ -495,7 +496,7 @@ class SamIndex(BaseWrapper):
     '''
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
-        kwargs['target'] = hashlib.sha224(input + '.srtd.bam.bai').hexdigest() + ".txt"
+        kwargs['target'] = input + '.srtd.bam.bai' + hashlib.sha224(input + '.srtd.bam.bai').hexdigest() + ".txt"
         new_name = name + " index"
         self.init(new_name, **kwargs)
         if kwargs.get('job_parms_type') != 'default':
@@ -518,7 +519,7 @@ class BiobambamMarkDup(BaseWrapper):
 
     def __init__(self, name, input, *args, **kwargs):
         self.input = input
-        kwargs['target'] = hashlib.sha224(input + '.dup.srtd.bam').hexdigest() + ".txt"
+        kwargs['target'] = input + '.dup.srtd.bam' + hashlib.sha224(input + '.dup.srtd.bam').hexdigest() + ".txt"
         self.init(name, **kwargs)
 
         if kwargs.get('job_parms_type') != 'default':

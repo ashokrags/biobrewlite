@@ -27,3 +27,8 @@ workflow_sequence:
       ncpus: 16
       time: 600
   qualimap_rnaseq: default
+  salmon:
+    options:
+      -g: /gpfs/scratch/aragaven/lapierre/caenorhabditis_elegans.PRJNA13758.WBPS8.canonical_geneset.gtf
+      -i: /gpfs/data/cbc/cbcollab/cbc_ref/salmon_index/c_elegans_PRJNA13758_WBPS8_mRNA_transcripts_index
+  htseq-count: default

@@ -8,7 +8,7 @@ import luigi.contrib.ssh as lcs
 
 class TestRnaSeqFlowFunctions(TestCase):
     def setUp(self):
-        self.parmsfile = "test_run.yaml"
+        self.parmsfile = "test_run_mac_remote_pe_celegans.yaml"
         self.rw1 = rsw(self.parmsfile)
 
     def test_parse_config(self):
@@ -134,12 +134,13 @@ class TestRnaSeqFlowLocalToRemotePE(TestCase):
         self.rw1.symlink_fastqs()
         # self.rw1.set_base_kwargs()
         self.rw1.chain_commands()
-        luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=True,
-                    workers=len(self.rw1.sample_fastq_work.keys()), lock_size=1)
+        # luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)], local_scheduler=True,
+        # workers=len(self.rw1.sample_fastq_work.keys()), lock_size=1)
 
         ## Need to write another test to test the luigi web interface
 
-        #luigi.build([TaskFlow(tasks=self.rw1.allTasks)], local_scheduler=False, workers=2, lock_size=3)
+        luigi.build([TaskFlow(tasks=self.rw1.allTasks, task_name=self.rw1.bioproject)],
+                    local_scheduler=False, workers=len(self.rw1.sample_fastq_work.keys()), lock_size=1)
 
 
 class TestRnaSeqFlowLocalSlurmSE(TestCase):
@@ -276,6 +277,14 @@ if __name__ == '__main__':
     # run all tests
     # unittest.main()
 
+    ## Test specific workflow function
+
+    # suite = unittest.TestSuite()
+    # suite.addTest(TestRnaSeqFlowFunctions("test_parse_prog_info"))
+    # suite.addTest(TestRnaSeqFlowFunctions("test_chain_commands_se"))
+    # runner = unittest.TextTestRunner()
+    # runner.run(suite)
+
     ## Runs  only a specific function
 
     # suite = unittest.TestSuite()
@@ -292,9 +301,9 @@ if __name__ == '__main__':
     # runner.run(suite)
 
     ## Runs  only a specific class for PE C elegans from my mac to CCV
-    # suite = unittest.TestLoader().loadTestsFromTestCase(TestRnaSeqFlowLocalHostPE)
-    # runner = unittest.TextTestRunner()
-    # runner.run(suite)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestRnaSeqFlowLocalToRemotePE)
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
 
     ## Runs  only a specific class for SE Mouse locally on CCV
 
@@ -310,9 +319,9 @@ if __name__ == '__main__':
 
     ## Runs  only a specific class for SE mus from SRA locally on CCV
 
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestRnaSeqFlowSRALocalSlurmSE)
-    runner = unittest.TextTestRunner()
-    runner.run(suite)
+    # suite = unittest.TestLoader().loadTestsFromTestCase(TestRnaSeqFlowSRALocalSlurmSE)
+    # runner = unittest.TextTestRunner()
+    # runner.run(suite)
 
     ## Runs  only a specific class for SE mus from SRA locally on CCV
     #

@@ -1,4 +1,4 @@
-import luigi, yaml, saga, os, jsonpickle, time, subprocess, copy, sys, collections
+import luigi, yaml, saga, os, jsonpickle, time, subprocess, copy, sys
 from sqlalchemy.orm import sessionmaker
 import biobrewliteutils.catalog_base as cb
 from biobrewliteutils.catalog import *
@@ -6,6 +6,30 @@ from collections import OrderedDict
 import biobrewliteutils.wrappers as wr
 from bioutils.access_sra.sra import SraUtils
 
+
+def ordered_load(stream, loader=yaml.Loader, object_pairs_hook=OrderedDict):
+    '''
+     Load YAML as an Ordered Dict
+    :param stream:
+    :param loader:
+    :param object_pairs_hook:
+    :return:
+
+    Borrowed shamelessly from http://codegist.net/code/python2-yaml/
+    '''
+
+    class OrderedLoader(loader):
+        pass
+
+    def construct_mapping(loader, node):
+        loader.flatten_mapping(node)
+        return object_pairs_hook(loader.construct_pairs(node))
+
+    OrderedLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        construct_mapping
+    )
+    return yaml.load(stream, OrderedLoader)
 
 class BaseTask:
     def setup(self):
@@ -170,7 +194,7 @@ class BaseWorkflow:
         """
               Parse the YAML file and create workflow class attributes accordingly.
         """
-        for k, v in yaml.safe_load(open(fileHandle, 'r')).iteritems():
+        for k, v in ordered_load(open(fileHandle, 'r'), yaml.SafeLoader).iteritems():
             setattr(self, k, v)
         return
 
@@ -256,6 +280,11 @@ class RnaSeqFlow(BaseWorkflow):
          and their specified parameters
         :return: 
         """
+
+        ##******************************************
+        ## This whole section needs to be refactored
+        ## to allow for program options to be updated
+
         for k, v in self.workflow_sequence.iteritems():
             self.progs[k] = []
             print k, v
@@ -274,7 +303,7 @@ class RnaSeqFlow(BaseWorkflow):
                 else:
                     self.progs_job_parms[k] = 'default'
             elif v == 'default':
-                self.progs[k].append(v)
+                self.progs[k].append('')
 
                 # self.progs[k].append(v1)
         self.progs = OrderedDict(reversed(self.progs.items()))
@@ -457,7 +486,7 @@ class RnaSeqFlow(BaseWorkflow):
         jd = saga.job.Description()
         jd.executable = ''
         jd.working_directory = self.run_parms['work_dir']
-        jd.wall_time_limit = 300
+        jd.wall_time_limit = 1500
         # jd.output = os.path.join(log_dir, "symlink.stdout")
         # jd.error = os.path.join(log_dir, "symlink.stderr")
         job_output = os.path.join(self.log_dir, "symlink.stdout")
